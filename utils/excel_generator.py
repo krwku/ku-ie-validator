@@ -1,94 +1,95 @@
 import tempfile
 import os
+import json
 from pathlib import Path
 
-def classify_course(course_code, course_name=""):
+def load_course_categories():
     """
-    Classify course into appropriate category based on course code.
+    Load course categories from separate JSON files.
+    Returns: dict with categorized courses
+    """
+    course_data_dir = Path(__file__).parent.parent / "course_data"
+    
+    categories = {
+        "ie_core": set(),
+        "technical_electives": set(),
+        "gen_ed": {
+            "wellness": set(),
+            "entrepreneurship": set(),
+            "language_communication": set(),
+            "thai_citizen_global": set(),
+            "aesthetics": set()
+        }
+    }
+    
+    # Load IE Core courses
+    ie_core_file = course_data_dir / "ie_core_courses.json"
+    if ie_core_file.exists():
+        with open(ie_core_file, 'r', encoding='utf-8') as f:
+            ie_data = json.load(f)
+            # Add from both sections
+            for course in ie_data.get("industrial_engineering_courses", []):
+                categories["ie_core"].add(course["code"])
+            for course in ie_data.get("other_related_courses", []):
+                categories["ie_core"].add(course["code"])
+    
+    # Load Technical Electives
+    tech_file = course_data_dir / "technical_electives.json"
+    if tech_file.exists():
+        with open(tech_file, 'r', encoding='utf-8') as f:
+            tech_data = json.load(f)
+            for course in tech_data.get("technical_electives", []):
+                categories["technical_electives"].add(course["code"])
+    
+    # Load Gen-Ed courses
+    gen_ed_file = course_data_dir / "gen_ed_courses.json"
+    if gen_ed_file.exists():
+        with open(gen_ed_file, 'r', encoding='utf-8') as f:
+            gen_ed_data = json.load(f)
+            gen_ed_courses = gen_ed_data.get("gen_ed_courses", {})
+            
+            for course in gen_ed_courses.get("wellness", []):
+                categories["gen_ed"]["wellness"].add(course["code"])
+            for course in gen_ed_courses.get("entrepreneurship", []):
+                categories["gen_ed"]["entrepreneurship"].add(course["code"])
+            for course in gen_ed_courses.get("language_communication", []):
+                categories["gen_ed"]["language_communication"].add(course["code"])
+            for course in gen_ed_courses.get("thai_citizen_global", []):
+                categories["gen_ed"]["thai_citizen_global"].add(course["code"])
+            for course in gen_ed_courses.get("aesthetics", []):
+                categories["gen_ed"]["aesthetics"].add(course["code"])
+    
+    return categories
+
+def classify_course(course_code, course_name="", course_categories=None):
+    """
+    Classify course into appropriate category using loaded JSON files.
     Returns: (category, subcategory, is_identified)
     """
+    if course_categories is None:
+        course_categories = load_course_categories()
+    
     code = course_code.upper()
     
-    # IE Core Courses (specific patterns)
-    ie_core_patterns = [
-        "01206221", "01206222", "01206223", "01206224", "01206251", "01206272",
-        "01206311", "01206312", "01206321", "01206322", "01206323", "01206341", 
-        "01206342", "01206343", "01206361", "01206362", "01206371", "01206381",
-        "01206382", "01206399", "01206452", "01206495", "01206497", "01206499"
-    ]
-    
-    # Foundation courses that are also IE core
-    foundation_ie_patterns = [
-        "01204111", "01205201", "01205202", "01208111", "01208221", "01208241",
-        "01208281", "01208381", "01213211", "01403114", "01403117", 
-        "01417167", "01417168", "01417267", "01420111", "01420112", 
-        "01420113", "01420114"
-    ]
-    
-    if code in ie_core_patterns or code in foundation_ie_patterns:
+    # Check IE Core courses
+    if code in course_categories["ie_core"]:
         return ("ie_core", "core", True)
     
-    # Gen-Ed Classification with specific patterns
-    # Wellness
-    wellness_patterns = ["01175", "01101102", "01173151"]
-    if any(code.startswith(prefix) for prefix in wellness_patterns):
-        return ("gen_ed", "wellness", True)
-    
-    if code.startswith("01999") and any(keyword in course_name.lower() for keyword in ["health", "food", "mankind"]):
-        return ("gen_ed", "wellness", True)
-    
-    # Entrepreneurship  
-    entrepreneurship_patterns = ["01005101", "01131111", "01132101", "01200101", "01418102"]
-    if code in entrepreneurship_patterns:
-        return ("gen_ed", "entrepreneurship", True)
-    
-    # Language and Communication
-    language_patterns = ["01361", "01355", "01354", "01356", "01357", "01358", 
-                        "01362", "01367", "01395", "01398", "01399", "01371"]
-    if any(code.startswith(prefix) for prefix in language_patterns):
-        return ("gen_ed", "language_communication", True)
-    
-    if code in ["01418104", "01418111"]:
-        return ("gen_ed", "language_communication", True)
-    
-    # Thai Citizen and Global Citizenship
-    thai_citizen_patterns = ["01001", "01015", "01174", "01350", "01387104", 
-                            "01390", "01301", "01455", "01460"]
-    if any(code.startswith(prefix) for prefix in thai_citizen_patterns) or "999111" in code:
-        return ("gen_ed", "thai_citizen_global", True)
-    
-    # Aesthetics
-    aesthetics_patterns = ["01007", "01240", "01373", "01376", "01387102", "01420201"]
-    if any(code.startswith(prefix) for prefix in aesthetics_patterns):
-        return ("gen_ed", "aesthetics", True)
-    
-    if code.startswith("01999") and any(keyword in course_name.lower() for keyword in ["art", "music", "design", "culture"]):
-        return ("gen_ed", "aesthetics", True)
-    
-    # Technical Electives (advanced 206xxx courses not in core)
-    technical_elective_patterns = [
-        "01206411", "01206412", "01206413", "01206414", "01206415", "01206416",
-        "01206421", "01206422", "01206423", "01206424", "01206425", "01206426",
-        "01206427", "01206431", "01206432", "01206433", "01206441", "01206442",
-        "01206443", "01206444", "01206445", "01206446", "01206447", "01206448",
-        "01206451", "01206453", "01206461", "01206462", "01206463", "01206464",
-        "01206465", "01206466", "01206467", "01206471", "01206490", "01206496",
-        "01206498"
-    ]
-    
-    if code in technical_elective_patterns:
+    # Check Technical Electives
+    if code in course_categories["technical_electives"]:
         return ("technical_electives", "technical", True)
     
-    # Rail Engineering courses
-    if code.startswith("01200") and code in ["01200431", "01200434", "01200435"]:
-        return ("technical_electives", "rail", True)
+    # Check Gen-Ed courses
+    for subcategory, courses in course_categories["gen_ed"].items():
+        if code in courses:
+            return ("gen_ed", subcategory, True)
     
     # If we reach here, the course is unidentified
     return ("unidentified", "unknown", False)
 
 def create_smart_registration_excel(student_info, semesters, validation_results):
     """
-    Create a smart, dynamic Excel registration format with unidentified course tracking.
+    Create a smart, dynamic Excel registration format with proper course detection.
     """
     try:
         from openpyxl import Workbook
@@ -97,6 +98,9 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         wb = Workbook()
         ws = wb.active
         ws.title = "Registration Plan"
+        
+        # Load course categories once
+        course_categories = load_course_categories()
         
         # Define styles
         header_font = Font(bold=True, size=11)
@@ -142,7 +146,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         ws['F3'] = student_info.get('name', '')
         ws['F3'].fill = yellow_fill
         
-        # CLASSIFY ALL COURSES WITH IDENTIFICATION TRACKING
+        # CLASSIFY ALL COURSES WITH PROPER DETECTION
         classified_courses = {
             "ie_core": [],
             "gen_ed": {
@@ -154,7 +158,7 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
             },
             "technical_electives": [],
             "free_electives": [],
-            "unidentified": []  # NEW: Track unidentified courses
+            "unidentified": []  # Track unidentified courses
         }
         
         unidentified_count = 0
@@ -182,8 +186,8 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
                         issue_reason = result.get('reason', '')
                         break
                 
-                # Classify course with identification tracking
-                category, subcategory, is_identified = classify_course(course_code, course_name)
+                # Classify course with proper detection
+                category, subcategory, is_identified = classify_course(course_code, course_name, course_categories)
                 
                 if not is_identified:
                     unidentified_count += 1
@@ -276,17 +280,12 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
         
         header_cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']
         
-        # [Rest of the Excel generation code remains the same...]
         # IE CORE COURSES SECTION
         ws[f'A{current_row}'] = "IE CORE COURSES"
         ws[f'A{current_row}'].font = header_font
         ws[f'A{current_row}'].fill = blue_fill
         ws.merge_cells(f'A{current_row}:P{current_row}')
         current_row += 1
-        
-        # Add IE courses (same logic as before)
-        ie_courses_12 = [c for c in classified_courses["ie_core"] if c["year"] > 0 and (c["year"] - min(s.get("year_int", 9999) for s in semesters if s.get("year_int", 0) > 0) + 1) <= 2]
-        ie_courses_34 = [c for c in classified_courses["ie_core"] if c["year"] > 0 and (c["year"] - min(s.get("year_int", 9999) for s in semesters if s.get("year_int", 0) > 0) + 1) > 2]
         
         # Column headers
         headers = ["Code", "Course Name", "Grade", "Credits"]
@@ -301,6 +300,10 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
                     cell.fill = gray_fill
                     cell.border = border
         current_row += 1
+        
+        # Add IE courses (organize by years 1-2 and 3-4)
+        ie_courses_12 = [c for c in classified_courses["ie_core"] if c["year"] > 0 and (c["year"] - min(s.get("year_int", 9999) for s in semesters if s.get("year_int", 0) > 0) + 1) <= 2]
+        ie_courses_34 = [c for c in classified_courses["ie_core"] if c["year"] > 0 and (c["year"] - min(s.get("year_int", 9999) for s in semesters if s.get("year_int", 0) > 0) + 1) > 2]
         
         if ie_courses_12:
             ws[f'A{current_row}'] = "Years 1-2"
@@ -360,8 +363,202 @@ def create_smart_registration_excel(student_info, semesters, validation_results)
             
             current_row += 1
         
-        # [Continue with rest of sections - Gen-Ed, Technical Electives, etc.]
-        # [Same as before but with updated color coding]
+        # GEN-ED SECTIONS with proper categorization
+        gen_ed_categories = [
+            ("wellness", "WELLNESS (7 Credits Required)"),
+            ("entrepreneurship", "ENTREPRENEURSHIP (5 Credits Required)"),
+            ("language_communication", "LANGUAGE & COMMUNICATION (15 Credits Required)"),
+            ("thai_citizen_global", "THAI CITIZEN & GLOBAL CITIZENSHIP (2 Credits Required)"),
+            ("aesthetics", "AESTHETICS (3 Credits Required)")
+        ]
+        
+        for category_key, category_name in gen_ed_categories:
+            courses = classified_courses["gen_ed"][category_key]
+            if courses:  # Only show if there are courses
+                # Category header
+                ws[f'A{current_row}'] = category_name
+                ws[f'A{current_row}'].font = header_font
+                ws[f'A{current_row}'].fill = gray_fill
+                ws.merge_cells(f'A{current_row}:P{current_row}')
+                current_row += 1
+                
+                # Add courses in this category
+                for course in courses:
+                    ws[f'A{current_row}'] = course["code"]
+                    ws[f'A{current_row}'].border = border
+                    ws[f'A{current_row}'].font = small_font
+                    
+                    ws[f'B{current_row}'] = course["name"]
+                    ws[f'B{current_row}'].border = border
+                    ws[f'B{current_row}'].font = small_font
+                    ws[f'B{current_row}'].alignment = left_align
+                    
+                    ws[f'C{current_row}'] = course["grade"]
+                    ws[f'C{current_row}'].border = border
+                    ws[f'C{current_row}'].font = small_font
+                    ws[f'C{current_row}'].alignment = center_align
+                    
+                    ws[f'D{current_row}'] = course["credits"]
+                    ws[f'D{current_row}'].border = border
+                    ws[f'D{current_row}'].font = small_font
+                    ws[f'D{current_row}'].alignment = center_align
+                    
+                    ws[f'E{current_row}'] = course["semester"]
+                    ws[f'E{current_row}'].border = border
+                    ws[f'E{current_row}'].font = small_font
+                    
+                    # Color coding
+                    if not course["is_identified"]:
+                        for col in ['A', 'B', 'C', 'D', 'E']:
+                            ws[f'{col}{current_row}'].fill = orange_fill
+                    elif not course["is_valid"]:
+                        for col in ['A', 'B', 'C', 'D', 'E']:
+                            ws[f'{col}{current_row}'].fill = red_fill
+                    elif course["grade"] not in ['F', 'W', 'N', '']:
+                        for col in ['A', 'B', 'C', 'D', 'E']:
+                            ws[f'{col}{current_row}'].fill = green_fill
+                    
+                    current_row += 1
+                
+                current_row += 1
+        
+        # TECHNICAL ELECTIVES SECTION
+        if classified_courses["technical_electives"]:
+            ws[f'A{current_row}'] = "TECHNICAL ELECTIVES"
+            ws[f'A{current_row}'].font = header_font
+            ws[f'A{current_row}'].fill = blue_fill
+            ws.merge_cells(f'A{current_row}:P{current_row}')
+            current_row += 1
+            
+            for course in classified_courses["technical_electives"]:
+                ws[f'A{current_row}'] = course["code"]
+                ws[f'A{current_row}'].border = border
+                ws[f'A{current_row}'].font = small_font
+                
+                ws[f'B{current_row}'] = course["name"]
+                ws[f'B{current_row}'].border = border
+                ws[f'B{current_row}'].font = small_font
+                ws[f'B{current_row}'].alignment = left_align
+                
+                ws[f'C{current_row}'] = course["grade"]
+                ws[f'C{current_row}'].border = border
+                ws[f'C{current_row}'].font = small_font
+                ws[f'C{current_row}'].alignment = center_align
+                
+                ws[f'D{current_row}'] = course["credits"]
+                ws[f'D{current_row}'].border = border
+                ws[f'D{current_row}'].font = small_font
+                ws[f'D{current_row}'].alignment = center_align
+                
+                ws[f'E{current_row}'] = course["semester"]
+                ws[f'E{current_row}'].border = border
+                ws[f'E{current_row}'].font = small_font
+                
+                # Color coding
+                if not course["is_identified"]:
+                    for col in ['A', 'B', 'C', 'D', 'E']:
+                        ws[f'{col}{current_row}'].fill = orange_fill
+                elif not course["is_valid"]:
+                    for col in ['A', 'B', 'C', 'D', 'E']:
+                        ws[f'{col}{current_row}'].fill = red_fill
+                elif course["grade"] not in ['F', 'W', 'N', '']:
+                    for col in ['A', 'B', 'C', 'D', 'E']:
+                        ws[f'{col}{current_row}'].fill = green_fill
+                
+                current_row += 1
+            
+            current_row += 1
+        
+        # FREE ELECTIVES SECTION
+        if classified_courses["free_electives"]:
+            ws[f'A{current_row}'] = "FREE ELECTIVES"
+            ws[f'A{current_row}'].font = header_font
+            ws[f'A{current_row}'].fill = yellow_fill
+            ws.merge_cells(f'A{current_row}:P{current_row}')
+            current_row += 1
+            
+            for course in classified_courses["free_electives"]:
+                ws[f'A{current_row}'] = course["code"]
+                ws[f'A{current_row}'].border = border
+                ws[f'A{current_row}'].font = small_font
+                
+                ws[f'B{current_row}'] = course["name"]
+                ws[f'B{current_row}'].border = border
+                ws[f'B{current_row}'].font = small_font
+                ws[f'B{current_row}'].alignment = left_align
+                
+                ws[f'C{current_row}'] = course["grade"]
+                ws[f'C{current_row}'].border = border
+                ws[f'C{current_row}'].font = small_font
+                ws[f'C{current_row}'].alignment = center_align
+                
+                ws[f'D{current_row}'] = course["credits"]
+                ws[f'D{current_row}'].border = border
+                ws[f'D{current_row}'].font = small_font
+                ws[f'D{current_row}'].alignment = center_align
+                
+                ws[f'E{current_row}'] = course["semester"]
+                ws[f'E{current_row}'].border = border
+                ws[f'E{current_row}'].font = small_font
+                
+                # Color coding
+                if not course["is_identified"]:
+                    for col in ['A', 'B', 'C', 'D', 'E']:
+                        ws[f'{col}{current_row}'].fill = orange_fill
+                elif not course["is_valid"]:
+                    for col in ['A', 'B', 'C', 'D', 'E']:
+                        ws[f'{col}{current_row}'].fill = red_fill
+                elif course["grade"] not in ['F', 'W', 'N', '']:
+                    for col in ['A', 'B', 'C', 'D', 'E']:
+                        ws[f'{col}{current_row}'].fill = green_fill
+                
+                current_row += 1
+        
+        # SUMMARY AT THE END
+        current_row += 2
+        
+        ws[f'A{current_row}'] = "CREDIT SUMMARY"
+        ws[f'A{current_row}'].font = header_font
+        ws[f'A{current_row}'].fill = blue_fill
+        ws.merge_cells(f'A{current_row}:E{current_row}')
+        current_row += 1
+        
+        # Calculate credits by category
+        ie_credits = sum(c["credits"] for c in classified_courses["ie_core"] if c["grade"] not in ['F', 'W', 'N', ''])
+        gen_ed_credits = sum(
+            sum(c["credits"] for c in courses if c["grade"] not in ['F', 'W', 'N', ''])
+            for courses in classified_courses["gen_ed"].values()
+        )
+        tech_credits = sum(c["credits"] for c in classified_courses["technical_electives"] if c["grade"] not in ['F', 'W', 'N', ''])
+        free_credits = sum(c["credits"] for c in classified_courses["free_electives"] if c["grade"] not in ['F', 'W', 'N', ''])
+        unidentified_credits = sum(c["credits"] for c in classified_courses["unidentified"] if c["grade"] not in ['F', 'W', 'N', ''])
+        
+        summary_data = [
+            ("IE Core Courses:", ie_credits),
+            ("Gen-Ed Courses:", gen_ed_credits),
+            ("Technical Electives:", tech_credits),
+            ("Free Electives:", free_credits),
+            ("Unidentified Courses:", unidentified_credits),
+            ("TOTAL CREDITS:", ie_credits + gen_ed_credits + tech_credits + free_credits + unidentified_credits)
+        ]
+        
+        for i, (label, credits) in enumerate(summary_data):
+            row = current_row + i
+            ws[f'A{row}'] = label
+            ws[f'A{row}'].font = subheader_font
+            ws[f'B{row}'] = credits
+            ws[f'B{row}'].font = subheader_font
+            
+            if "Unidentified" in label and credits > 0:
+                ws[f'A{row}'].fill = orange_fill
+                ws[f'B{row}'].fill = orange_fill
+            elif label.startswith("TOTAL"):
+                ws[f'A{row}'].fill = blue_fill
+                ws[f'B{row}'].fill = blue_fill
+            elif credits > 0:
+                ws[f'B{row}'].fill = green_fill
+            else:
+                ws[f'B{row}'].fill = yellow_fill
         
         # Save to bytes
         with tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False) as tmp_file:
