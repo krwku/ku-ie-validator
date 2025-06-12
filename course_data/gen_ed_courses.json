@@ -1,0 +1,182 @@
+{
+  "gen_ed_courses": {
+    "wellness": [
+      {
+        "code": "01175111",
+        "name": "Track and Field for Health",
+        "credits": "1(0-2-1)",
+        "category": "Wellness"
+      },
+      {
+        "code": "01175112", 
+        "name": "Badminton for Health",
+        "credits": "1(0-2-1)",
+        "category": "Wellness"
+      },
+      {
+        "code": "01175113",
+        "name": "Tennis for Health", 
+        "credits": "1(0-2-1)",
+        "category": "Wellness"
+      },
+      {
+        "code": "01175114",
+        "name": "Table Tennis for Health",
+        "credits": "1(0-2-1)", 
+        "category": "Wellness"
+      },
+      {
+        "code": "01175115",
+        "name": "Meditation with Shooting Activity",
+        "credits": "1(0-2-1)",
+        "category": "Wellness"
+      },
+      {
+        "code": "01101102",
+        "name": "Buddhist Economics for Well Being",
+        "credits": "3(3-0-6)",
+        "category": "Wellness"
+      },
+      {
+        "code": "01173151",
+        "name": "AIDS Education", 
+        "credits": "2(2-0-4)",
+        "category": "Wellness"
+      },
+      {
+        "code": "01999011",
+        "name": "Food for Mankind",
+        "credits": "3(3-0-6)",
+        "category": "Wellness"
+      },
+      {
+        "code": "01999012",
+        "name": "Heath for Life",
+        "credits": "3(3-0-6)",
+        "category": "Wellness"
+      }
+    ],
+    "entrepreneurship": [
+      {
+        "code": "01005101",
+        "name": "Modern Agriculture Technology",
+        "credits": "3(3-0-6)",
+        "category": "Entrepreneurship"
+      },
+      {
+        "code": "01131111",
+        "name": "Finance for Entrepreneurs", 
+        "credits": "3(3-0-6)",
+        "category": "Entrepreneurship"
+      },
+      {
+        "code": "01132101",
+        "name": "Modern Entrepreneur",
+        "credits": "3(3-0-6)",
+        "category": "Entrepreneurship"
+      },
+      {
+        "code": "01200101",
+        "name": "Innovative Thinking",
+        "credits": "3(3-0-6)",
+        "category": "Entrepreneurship"
+      },
+      {
+        "code": "01418102",
+        "name": "Information Technology for Entrepreneurs",
+        "credits": "3(2-2-5)",
+        "category": "Entrepreneurship"
+      }
+    ],
+    "thai_citizen_global": [
+      {
+        "code": "01999111",
+        "name": "Knowledge of the Land",
+        "credits": "1(1-0-2)",
+        "category": "Thai Citizen and Global Citizen"
+      },
+      {
+        "code": "01001317",
+        "name": "Kings and State Leaders on Agricultural Sector Development",
+        "credits": "1(1-0-2)",
+        "category": "Thai Citizen and Global Citizen"
+      }
+    ],
+    "language_communication": [
+      {
+        "code": "01361101",
+        "name": "Introductory Thai Usage",
+        "credits": "3(3-0-6)",
+        "category": "Language and Communication"
+      },
+      {
+        "code": "01361102", 
+        "name": "Thai Practical Writing",
+        "credits": "3(3-0-6)",
+        "category": "Language and Communication"
+      },
+      {
+        "code": "01355111",
+        "name": "Foundation English I",
+        "credits": "3(3-0-6)",
+        "category": "Language and Communication"
+      },
+      {
+        "code": "01355112",
+        "name": "Foundation English II",
+        "credits": "3(3-0-6)",
+        "category": "Language and Communication"
+      },
+      {
+        "code": "01355113",
+        "name": "Foundation English III",
+        "credits": "3(3-0-6)",
+        "category": "Language and Communication"
+      },
+      {
+        "code": "01418104",
+        "name": "IT Updates",
+        "credits": "3(2-2-5)",
+        "category": "Language and Communication"
+      },
+      {
+        "code": "01418111",
+        "name": "Computer Applications",
+        "credits": "3(2-2-5)",
+        "category": "Language and Communication"
+      }
+    ],
+    "aesthetics": [
+      {
+        "code": "01007101",
+        "name": "Horticulture for life Quality and Environment",
+        "credits": "3(2-2-5)",
+        "category": "Aesthetics"
+      },
+      {
+        "code": "01240011",
+        "name": "Design in Everyday Life",
+        "credits": "3(3-0-6)",
+        "category": "Aesthetics"
+      },
+      {
+        "code": "01373102",
+        "name": "Visual Culture and Life",
+        "credits": "3(3-0-6)",
+        "category": "Aesthetics"
+      },
+      {
+        "code": "01999034",
+        "name": "Art Perception",
+        "credits": "3(3-0-6)",
+        "category": "Aesthetics"
+      },
+      {
+        "code": "01999035",
+        "name": "Music Culture in Life",
+        "credits": "3(3-0-6)",
+        "category": "Aesthetics"
+      }
+    ]
+  }
+}
