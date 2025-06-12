@@ -8,13 +8,16 @@ import os
 # Add modules to path
 sys.path.append(str(Path(__file__).parent))
 
-# Import our clean modules
+# Import our modules
 from utils.pdf_processor import extract_text_from_pdf_bytes
-from utils.excel_generator import create_smart_registration_excel
 from utils.course_data_loader import load_comprehensive_course_data
 from utils.pdf_extractor import PDFExtractor
 from utils.validation_adapter import ValidationAdapter
 from validator import CourseRegistrationValidator
+
+# Import the new generators
+from utils.excel_generator import create_smart_registration_excel
+from utils.semester_flow_generator import create_semester_flow_html
 
 def main():
     st.set_page_config(
@@ -24,7 +27,7 @@ def main():
     )
     
     st.title("🎓 KU Industrial Engineering Course Validator")
-    st.markdown("*Smart Registration Planning with Dynamic Course Classification*")
+    st.markdown("*Smart Registration Planning with Advanced Visualizations*")
     st.markdown("*Created for Raphin P.*")
     
     # Initialize session state
@@ -38,6 +41,8 @@ def main():
         st.session_state.selected_course_data = None
     if 'processing_complete' not in st.session_state:
         st.session_state.processing_complete = False
+    if 'unidentified_count' not in st.session_state:
+        st.session_state.unidentified_count = 0
     
     # Load course data
     available_course_data = load_comprehensive_course_data()
@@ -78,18 +83,19 @@ def main():
                 st.session_state.student_info = {}
                 st.session_state.semesters = []
                 st.session_state.validation_results = []
+                st.session_state.unidentified_count = 0
                 st.session_state.last_pdf_name = pdf_file.name
     
     # Main processing
     if pdf_file is not None and st.session_state.selected_course_data is not None:
         
         if not st.session_state.processing_complete:
-            with st.spinner("🔄 Processing PDF and creating smart course classification..."):
+            with st.spinner("🔄 Processing PDF and creating advanced course analysis..."):
                 
                 pdf_bytes = pdf_file.getvalue()
                 
                 try:
-                    # Extract text from PDF using our fixed function
+                    # Extract text from PDF
                     extracted_text = extract_text_from_pdf_bytes(pdf_bytes)
                     
                     if not extracted_text:
@@ -193,16 +199,59 @@ def main():
                             st.error(f"**{result.get('semester')}:** {result.get('course_code')} - {result.get('course_name')}")
                             st.write(f"   *Issue:* {result.get('reason')}")
             
+            # Check for unidentified courses
+            from utils.excel_generator import classify_course
+            unidentified_courses = []
+            for semester in st.session_state.semesters:
+                for course in semester.get("courses", []):
+                    category, subcategory, is_identified = classify_course(course.get("code", ""), course.get("name", ""))
+                    if not is_identified:
+                        unidentified_courses.append({
+                            "code": course.get("code", ""),
+                            "name": course.get("name", ""),
+                            "semester": semester.get("semester", "")
+                        })
+            
+            st.session_state.unidentified_count = len(unidentified_courses)
+            
+            if unidentified_courses:
+                st.warning(f"⚠️ **Database Update Needed:** {len(unidentified_courses)} unidentified courses found")
+                with st.expander("🔍 Unidentified Courses - Require Classification", expanded=True):
+                    for course in unidentified_courses:
+                        st.write(f"• **{course['code']}** - {course['name']} ({course['semester']})")
+                    st.info("These courses need to be added to the course classification system.")
+            
+            # Visualization Options
+            st.divider()
+            st.header("📊 Advanced Visualizations")
+            
+            # Generate semester flow chart (always show this)
+            try:
+                flow_html, _ = create_semester_flow_html(
+                    st.session_state.student_info,
+                    st.session_state.semesters,
+                    st.session_state.validation_results
+                )
+                
+                st.subheader("🗂️ Semester-Based Curriculum Flow Chart")
+                st.markdown("*Interactive curriculum visualization showing course progression*")
+                
+                # Display the HTML in Streamlit
+                st.components.v1.html(flow_html, height=800, scrolling=True)
+                
+            except Exception as e:
+                st.error(f"Error generating flow chart: {e}")
+            
             # Download section
             st.divider()
-            st.header("📥 Download Smart Registration Reports")
+            st.header("📥 Download Reports")
             
-            col_dl1, col_dl2, col_dl3 = st.columns(3)
+            col_dl1, col_dl2, col_dl3, col_dl4 = st.columns(4)
             
             with col_dl1:
                 # Generate Smart Excel format
                 try:
-                    excel_bytes = create_smart_registration_excel(
+                    excel_bytes, excel_unidentified = create_smart_registration_excel(
                         st.session_state.student_info,
                         st.session_state.semesters,
                         st.session_state.validation_results
@@ -210,20 +259,47 @@ def main():
                     
                     if excel_bytes:
                         st.download_button(
-                            label="📋 Download Smart Registration Plan (.xlsx)",
+                            label="📋 Smart Excel Plan",
                             data=excel_bytes,
                             file_name=f"KU_IE_smart_plan_{st.session_state.student_info.get('id', 'unknown')}.xlsx",
                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                            help="Intelligent course classification with dynamic layout",
+                            help="Intelligent course classification with alerts for unidentified courses",
                             use_container_width=True
                         )
+                        
+                        if excel_unidentified > 0:
+                            st.warning(f"⚠️ {excel_unidentified} unidentified")
                     else:
-                        st.error("❌ Failed to generate Excel file")
+                        st.error("❌ Excel generation failed")
                         
                 except Exception as e:
-                    st.error(f"❌ Excel generation error: {e}")
+                    st.error(f"❌ Excel error: {e}")
             
             with col_dl2:
+                # HTML Flow Chart download
+                try:
+                    flow_html, flow_unidentified = create_semester_flow_html(
+                        st.session_state.student_info,
+                        st.session_state.semesters,
+                        st.session_state.validation_results
+                    )
+                    
+                    st.download_button(
+                        label="🗂️ Flow Chart (HTML)",
+                        data=flow_html.encode('utf-8'),
+                        file_name=f"curriculum_flow_{st.session_state.student_info.get('id', 'unknown')}.html",
+                        mime="text/html",
+                        help="Interactive semester-based curriculum flow chart",
+                        use_container_width=True
+                    )
+                    
+                    if flow_unidentified > 0:
+                        st.warning(f"⚠️ {flow_unidentified} unidentified")
+                        
+                except Exception as e:
+                    st.error(f"❌ Flow chart error: {e}")
+            
+            with col_dl3:
                 # Text report
                 try:
                     validator = CourseRegistrationValidator(
@@ -236,25 +312,26 @@ def main():
                     )
                     
                     st.download_button(
-                        label="📄 Download Validation Report",
+                        label="📄 Validation Report",
                         data=report_text,
                         file_name=f"validation_report_{st.session_state.student_info.get('id', 'unknown')}.txt",
                         mime="text/plain",
                         use_container_width=True
                     )
                 except Exception as e:
-                    st.error(f"❌ Report generation error: {e}")
+                    st.error(f"❌ Report error: {e}")
             
-            with col_dl3:
+            with col_dl4:
                 # JSON data
                 export_data = {
                     "student_info": st.session_state.student_info,
                     "semesters": st.session_state.semesters,
-                    "validation_results": st.session_state.validation_results
+                    "validation_results": st.session_state.validation_results,
+                    "unidentified_count": st.session_state.unidentified_count
                 }
                 
                 st.download_button(
-                    label="💾 Download Raw Data",
+                    label="💾 Raw Data (JSON)",
                     data=json.dumps(export_data, indent=2),
                     file_name=f"transcript_data_{st.session_state.student_info.get('id', 'unknown')}.json",
                     mime="application/json",
@@ -268,13 +345,14 @@ def main():
                 st.session_state.student_info = {}
                 st.session_state.semesters = []
                 st.session_state.validation_results = []
+                st.session_state.unidentified_count = 0
                 if 'last_pdf_name' in st.session_state:
                     del st.session_state.last_pdf_name
                 st.rerun()
     
     else:
         # Welcome screen
-        st.info("📋 **Ready for smart course validation and planning!**")
+        st.info("📋 **Ready for advanced course validation and visualization!**")
         
         col_info1, col_info2 = st.columns([1, 1])
         
@@ -283,24 +361,28 @@ def main():
             st.markdown("""
             1. **Select course catalog** (IE 2560 or 2565)
             2. **Upload PDF transcript** in the sidebar
-            3. **Wait for smart processing** ⚡
-            4. **Download intelligent registration plan** 📋
+            3. **Wait for processing** ⚡
+            4. **View interactive visualizations** 🗂️
+            5. **Download various report formats** 📋
             """)
         
         with col_info2:
-            st.markdown("### 🧠 Smart Features:")
-            st.markdown("• **Automatic course classification** - IE Core, Gen-Ed, Electives")
-            st.markdown("• **Dynamic layout** - Adjusts to your actual courses")
-            st.markdown("• **Clear formatting** - Separate columns for code/name")
-            st.markdown("• **Color-coded validation** - Green/Red status")
-            st.markdown("• **Credit summary** - Automatic calculations by category")
+            st.markdown("### 🚀 New Features:")
+            st.markdown("• **Unidentified course detection** - Alerts for database updates needed")
+            st.markdown("• **Interactive curriculum flow chart** - Visual semester progression")
+            st.markdown("• **Smart Excel reports** - Organized by categories with validation status")
+            st.markdown("• **Multiple output formats** - HTML, Excel, PDF-ready layouts")
+            st.markdown("• **Color-coded status** - Easy visual identification of course status")
     
-    # Status bar at bottom with your motto
+    # Status bar at bottom
     st.divider()
     col_status1, col_status2 = st.columns([3, 1])
+    with col_status1:
+        if st.session_state.unidentified_count > 0:
+            st.warning(f"⚠️ Database maintenance needed: {st.session_state.unidentified_count} unidentified courses found")
     with col_status2:
         st.markdown("*Created for Raphin P.*", 
-                   help="This application was specially created for Raphin P.")
+                   help="Advanced course validation system with visual curriculum mapping")
 
 if __name__ == "__main__":
     main()
