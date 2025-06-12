@@ -17,8 +17,9 @@ from utils.validation_adapter import ValidationAdapter
 from validator import CourseRegistrationValidator
 
 # Import the fixed generators
-from utils.excel_generator import create_smart_registration_excel, classify_course, load_course_categories
+from utils.excel_generator import create_smart_registration_excel
 from utils.semester_flow_generator import create_semester_flow_html
+from utils.unified_course_classifier import unified_classifier
 
 def safe_course_classification():
     """Safely load course categories with error handling."""
