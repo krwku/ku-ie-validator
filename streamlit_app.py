@@ -6,46 +6,13 @@ import tempfile
 import os
 import io
 import PyPDF2
-import pandas as pd
-from datetime import datetime
 
 # Add your existing modules to path
 sys.path.append(str(Path(__file__).parent))
 
-# Import your existing modules
 from utils.pdf_extractor import PDFExtractor
 from utils.validation_adapter import ValidationAdapter
 from validator import CourseRegistrationValidator
-
-@st.cache_data
-def load_available_course_data():
-    """Load all available course data files from the repository"""
-    course_data_dir = Path(__file__).parent / "course_data"
-    available_files = {}
-    
-    if course_data_dir.exists():
-        for json_file in course_data_dir.glob("*.json"):
-            try:
-                with open(json_file, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                
-                file_name = json_file.stem
-                if "2560" in file_name:
-                    display_name = "Industrial Engineering 2560 (2017-2021)"
-                elif "2565" in file_name:
-                    display_name = "Industrial Engineering 2565 (2022-2026)"
-                else:
-                    display_name = file_name
-                
-                available_files[display_name] = {
-                    'data': data,
-                    'filename': json_file.name,
-                    'path': str(json_file)
-                }
-            except Exception as e:
-                st.error(f"Error loading {json_file.name}: {e}")
-    
-    return available_files
 
 def extract_text_from_pdf_bytes(pdf_bytes):
     """Extract text from PDF bytes using PyPDF2"""
@@ -65,9 +32,10 @@ def extract_text_from_pdf_bytes(pdf_bytes):
         st.error(f"Error extracting text from PDF: {e}")
         return ""
 
-def create_pqi_registration_excel(student_info, semesters, validation_results):
+def create_ku_ie_registration_excel(student_info, semesters, validation_results):
     """
-    Create Excel file matching the exact PQI registration format.
+    Create Excel file matching the KU IE registration format.
+    FIXED: Properly handles merged cells to avoid read-only errors.
     """
     try:
         from openpyxl import Workbook
@@ -130,6 +98,7 @@ def create_pqi_registration_excel(student_info, semesters, validation_results):
         ws['B2'].fill = yellow_fill
         ws['B2'].border = border
         
+        # FIXED: Properly handle merged cells by setting value BEFORE merging
         # Year headers (row 4)
         year_headers = [
             ('B', 'E', 'Year 1'),
@@ -139,13 +108,16 @@ def create_pqi_registration_excel(student_info, semesters, validation_results):
         ]
         
         for start_col, end_col, year_text in year_headers:
-            ws.merge_cells(f'{start_col}4:{end_col}4')
+            # Set value in the top-left cell FIRST
             cell = ws[f'{start_col}4']
             cell.value = year_text
             cell.font = header_font
             cell.alignment = center_align
             cell.border = border
             cell.fill = gray_fill
+            
+            # THEN merge the cells
+            ws.merge_cells(f'{start_col}4:{end_col}4')
         
         # Semester headers (row 5)
         semester_cols = [
@@ -160,20 +132,26 @@ def create_pqi_registration_excel(student_info, semesters, validation_results):
         ]
         
         for start_col, end_col, sem_text in semester_cols:
-            ws.merge_cells(f'{start_col}5:{end_col}5')
+            # Set value in the top-left cell FIRST
             cell = ws[f'{start_col}5']
             cell.value = sem_text
             cell.font = header_font
             cell.alignment = center_align
             cell.border = border
+            
+            # THEN merge the cells
+            ws.merge_cells(f'{start_col}5:{end_col}5')
         
         # IE COURSE section label
-        ws.merge_cells('A6:A16')
+        # Set value FIRST
         cell = ws['A6']
         cell.value = "IE\nCOURSE"
         cell.font = header_font
         cell.alignment = center_align
         cell.border = border
+        
+        # THEN merge
+        ws.merge_cells('A6:A16')
         
         # Create course mapping
         course_mapping = {}
@@ -181,7 +159,6 @@ def create_pqi_registration_excel(student_info, semesters, validation_results):
             year = semester.get("year_int", 0)
             semester_type = semester.get("semester_type", "")
             
-            # Map to grid position (assuming first semester in data is Year 1)
             if year > 0:
                 # Calculate which year this should be in the grid
                 min_year = min(s.get("year_int", 9999) for s in semesters if s.get("year_int", 0) > 0)
@@ -232,8 +209,9 @@ def create_pqi_registration_excel(student_info, semesters, validation_results):
                                 is_valid = False
                                 break
                         
-                        # Create display text
-                        display_text = f"{course_code}\n{course_name[:30]}..."  # Truncate long names
+                        # Create display text (truncate long names)
+                        display_name = course_name[:25] + "..." if len(course_name) > 25 else course_name
+                        display_text = f"{course_code}\n{display_name}"
                         cell.value = display_text
                         
                         # Color coding: green if passed, default if valid but not completed
@@ -243,13 +221,13 @@ def create_pqi_registration_excel(student_info, semesters, validation_results):
         # GEN-ED section
         gen_ed_start_row = 17
         
-        # GEN-ED label
-        ws.merge_cells(f'A{gen_ed_start_row}:A{gen_ed_start_row + 25}')
+        # GEN-ED label - Set value FIRST, then merge
         cell = ws[f'A{gen_ed_start_row}']
         cell.value = "GEN-ED"
         cell.font = header_font
         cell.alignment = center_align
         cell.border = border
+        ws.merge_cells(f'A{gen_ed_start_row}:A{gen_ed_start_row + 25}')
         
         # GEN-ED categories
         categories = [
@@ -264,14 +242,14 @@ def create_pqi_registration_excel(student_info, semesters, validation_results):
         
         current_row = gen_ed_start_row
         for category_name, num_slots in categories:
-            # Category header
-            ws.merge_cells(f'B{current_row}:Q{current_row}')
+            # Category header - Set value FIRST, then merge
             cell = ws[f'B{current_row}']
             cell.value = category_name
             cell.font = header_font
             cell.alignment = center_align
             cell.border = border
             cell.fill = gray_fill
+            ws.merge_cells(f'B{current_row}:Q{current_row}')
             current_row += 1
             
             # Slots for this category
@@ -348,18 +326,52 @@ def create_pqi_registration_excel(student_info, semesters, validation_results):
             return excel_bytes
             
     except Exception as e:
-        st.error(f"Error creating PQI Excel file: {e}")
+        st.error(f"Error creating Excel file: {e}")
+        import traceback
+        st.error(traceback.format_exc())
         return None
+
+@st.cache_data
+def load_comprehensive_course_data():
+    """Load all course data including Gen-Ed and Technical Electives"""
+    course_data_dir = Path(__file__).parent / "course_data"
+    
+    # Try to load from existing files
+    available_files = {}
+    
+    if course_data_dir.exists():
+        for json_file in course_data_dir.glob("*.json"):
+            try:
+                with open(json_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                file_name = json_file.stem
+                if "2560" in file_name:
+                    display_name = "Industrial Engineering 2560 (2017-2021)"
+                elif "2565" in file_name:
+                    display_name = "Industrial Engineering 2565 (2022-2026)"
+                else:
+                    display_name = file_name.replace("_", " ").title()
+                
+                available_files[display_name] = {
+                    'data': data,
+                    'filename': json_file.name,
+                    'path': str(json_file)
+                }
+            except Exception as e:
+                st.error(f"Error loading {json_file.name}: {e}")
+    
+    return available_files
 
 def main():
     st.set_page_config(
-        page_title="Course Registration Validator", 
+        page_title="KU IE Course Validator", 
         page_icon="🎓",
         layout="wide"
     )
     
-    st.title("🎓 Course Registration Validation System")
-    st.markdown("*PQI Registration Format Generator*")
+    st.title("🎓 KU Industrial Engineering Course Validator")
+    st.markdown("*Complete Registration Planning and Validation System*")
     
     # Initialize session state
     if 'student_info' not in st.session_state:
@@ -373,8 +385,8 @@ def main():
     if 'processing_complete' not in st.session_state:
         st.session_state.processing_complete = False
     
-    # Load available course data
-    available_course_data = load_available_course_data()
+    # Load course data
+    available_course_data = load_comprehensive_course_data()
     
     # Sidebar
     with st.sidebar:
@@ -400,7 +412,7 @@ def main():
         pdf_file = st.file_uploader(
             "Upload PDF Transcript", 
             type=['pdf'],
-            help="Upload student transcript PDF for processing"
+            help="Upload student transcript PDF"
         )
         
         if pdf_file is not None:
@@ -418,7 +430,7 @@ def main():
     if pdf_file is not None and st.session_state.selected_course_data is not None:
         
         if not st.session_state.processing_complete:
-            with st.spinner("🔄 Processing PDF... Please wait."):
+            with st.spinner("🔄 Processing PDF and validating courses..."):
                 
                 pdf_bytes = pdf_file.getvalue()
                 extracted_text = extract_text_from_pdf_bytes(pdf_bytes)
@@ -526,64 +538,64 @@ def main():
             
             # Download section
             st.divider()
-            st.header("📥 Download PQI Registration Report")
+            st.header("📥 Download Registration Reports")
             
-            # Generate PQI Excel format
-            excel_bytes = create_pqi_registration_excel(
-                st.session_state.student_info,
-                st.session_state.semesters,
-                st.session_state.validation_results
-            )
+            col_dl1, col_dl2, col_dl3 = st.columns(3)
             
-            if excel_bytes:
-                col_dl1, col_dl2, col_dl3 = st.columns(3)
+            with col_dl1:
+                # Generate KU IE Excel format
+                excel_bytes = create_ku_ie_registration_excel(
+                    st.session_state.student_info,
+                    st.session_state.semesters,
+                    st.session_state.validation_results
+                )
                 
-                with col_dl1:
+                if excel_bytes:
                     st.download_button(
-                        label="📋 Download PQI Registration (.xlsx)",
+                        label="📋 Download Registration Planner (.xlsx)",
                         data=excel_bytes,
-                        file_name=f"PQI_registration_{st.session_state.student_info.get('id', 'unknown')}.xlsx",
+                        file_name=f"KU_IE_registration_{st.session_state.student_info.get('id', 'unknown')}.xlsx",
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        help="Exact PQI registration format with course planning grid",
+                        help="4-year course registration planning grid with validation results",
                         use_container_width=True
                     )
+                else:
+                    st.error("❌ Failed to generate Excel file")
+            
+            with col_dl2:
+                # Text report
+                validator = CourseRegistrationValidator(
+                    str(Path(__file__).parent / "course_data" / st.session_state.selected_course_data['filename'])
+                )
+                report_text = validator.generate_summary_report(
+                    st.session_state.student_info, 
+                    st.session_state.semesters, 
+                    st.session_state.validation_results
+                )
                 
-                with col_dl2:
-                    # Text report
-                    validator = CourseRegistrationValidator(
-                        str(Path(__file__).parent / "course_data" / st.session_state.selected_course_data['filename'])
-                    )
-                    report_text = validator.generate_summary_report(
-                        st.session_state.student_info, 
-                        st.session_state.semesters, 
-                        st.session_state.validation_results
-                    )
-                    
-                    st.download_button(
-                        label="📄 Download Text Report",
-                        data=report_text,
-                        file_name=f"validation_report_{st.session_state.student_info.get('id', 'unknown')}.txt",
-                        mime="text/plain",
-                        use_container_width=True
-                    )
+                st.download_button(
+                    label="📄 Download Validation Report",
+                    data=report_text,
+                    file_name=f"validation_report_{st.session_state.student_info.get('id', 'unknown')}.txt",
+                    mime="text/plain",
+                    use_container_width=True
+                )
+            
+            with col_dl3:
+                # JSON data
+                export_data = {
+                    "student_info": st.session_state.student_info,
+                    "semesters": st.session_state.semesters,
+                    "validation_results": st.session_state.validation_results
+                }
                 
-                with col_dl3:
-                    # JSON data
-                    export_data = {
-                        "student_info": st.session_state.student_info,
-                        "semesters": st.session_state.semesters,
-                        "validation_results": st.session_state.validation_results
-                    }
-                    
-                    st.download_button(
-                        label="💾 Download JSON Data",
-                        data=json.dumps(export_data, indent=2),
-                        file_name=f"transcript_data_{st.session_state.student_info.get('id', 'unknown')}.json",
-                        mime="application/json",
-                        use_container_width=True
-                    )
-            else:
-                st.error("❌ Failed to generate PQI Excel file")
+                st.download_button(
+                    label="💾 Download Raw Data",
+                    data=json.dumps(export_data, indent=2),
+                    file_name=f"transcript_data_{st.session_state.student_info.get('id', 'unknown')}.json",
+                    mime="application/json",
+                    use_container_width=True
+                )
             
             # Process another file
             st.divider()
@@ -598,24 +610,24 @@ def main():
     
     else:
         # Welcome screen
-        st.info("📋 **Ready to generate PQI Registration format!**")
+        st.info("📋 **Ready to validate KU Industrial Engineering courses!**")
         
         col_info1, col_info2 = st.columns([1, 1])
         
         with col_info1:
             st.markdown("### 🎯 How to use:")
             st.markdown("""
-            1. **Select course catalog** (already loaded!)
+            1. **Select course catalog** (IE 2560 or 2565)
             2. **Upload PDF transcript** in the sidebar
             3. **Wait for automatic processing** ⚡
-            4. **Download PQI registration format** 📋
+            4. **Download registration planner** 📋
             """)
         
         with col_info2:
-            st.markdown("### 📋 PQI Format Features:")
-            st.markdown("• **Exact grid layout** - 4 years × 2 semesters")
-            st.markdown("• **Color-coded courses** - Green for completed")
-            st.markdown("• **IE and GEN-ED sections** - Properly organized")
+            st.markdown("### 📋 Registration Planner Features:")
+            st.markdown("• **4-year grid layout** - Plan entire curriculum")
+            st.markdown("• **Color-coded validation** - Green for completed")
+            st.markdown("• **IE Core + Gen-Ed sections** - Complete coverage")
             st.markdown("• **Credit tracking** - Automatic calculations")
 
 if __name__ == "__main__":
