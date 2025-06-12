@@ -1,4 +1,3 @@
-# utils/semester_flow_generator.py
 import json
 from pathlib import Path
 
@@ -10,27 +9,31 @@ def load_course_categories():
     course_data_dir = Path(__file__).parent.parent / "course_data"
     
     categories = {
-        "ie_core": set(),
-        "technical_electives": set(),
+        "ie_core": {},  # Changed to dict to store course info
+        "technical_electives": {},
         "gen_ed": {
-            "wellness": set(),
-            "entrepreneurship": set(),
-            "language_communication": set(),
-            "thai_citizen_global": set(),
-            "aesthetics": set()
-        }
+            "wellness": {},
+            "entrepreneurship": {},
+            "language_communication": {},
+            "thai_citizen_global": {},
+            "aesthetics": {}
+        },
+        "all_courses": {}  # Master list of all courses
     }
     
-    # Load IE Core courses
-    ie_core_file = course_data_dir / "ie_core_courses.json"
-    if ie_core_file.exists():
-        with open(ie_core_file, 'r', encoding='utf-8') as f:
-            ie_data = json.load(f)
-            # Add from both sections
-            for course in ie_data.get("industrial_engineering_courses", []):
-                categories["ie_core"].add(course["code"])
-            for course in ie_data.get("other_related_courses", []):
-                categories["ie_core"].add(course["code"])
+    # Load IE Core courses from both B-IE files
+    for ie_file in ["B-IE-2560.json", "B-IE-2565.json", "ie_core_courses.json"]:
+        ie_path = course_data_dir / ie_file
+        if ie_path.exists():
+            with open(ie_path, 'r', encoding='utf-8') as f:
+                ie_data = json.load(f)
+                # Add from both sections
+                for course in ie_data.get("industrial_engineering_courses", []):
+                    categories["ie_core"][course["code"]] = course
+                    categories["all_courses"][course["code"]] = course
+                for course in ie_data.get("other_related_courses", []):
+                    categories["ie_core"][course["code"]] = course  
+                    categories["all_courses"][course["code"]] = course
     
     # Load Technical Electives
     tech_file = course_data_dir / "technical_electives.json"
@@ -38,27 +41,49 @@ def load_course_categories():
         with open(tech_file, 'r', encoding='utf-8') as f:
             tech_data = json.load(f)
             for course in tech_data.get("technical_electives", []):
-                categories["technical_electives"].add(course["code"])
+                categories["technical_electives"][course["code"]] = course
+                categories["all_courses"][course["code"]] = course
     
-    # Load Gen-Ed courses
+    # Load Gen-Ed courses with proper subcategory mapping
     gen_ed_file = course_data_dir / "gen_ed_courses.json"
     if gen_ed_file.exists():
         with open(gen_ed_file, 'r', encoding='utf-8') as f:
             gen_ed_data = json.load(f)
             gen_ed_courses = gen_ed_data.get("gen_ed_courses", {})
             
-            for course in gen_ed_courses.get("wellness", []):
-                categories["gen_ed"]["wellness"].add(course["code"])
-            for course in gen_ed_courses.get("entrepreneurship", []):
-                categories["gen_ed"]["entrepreneurship"].add(course["code"])
-            for course in gen_ed_courses.get("language_communication", []):
-                categories["gen_ed"]["language_communication"].add(course["code"])
-            for course in gen_ed_courses.get("thai_citizen_global", []):
-                categories["gen_ed"]["thai_citizen_global"].add(course["code"])
-            for course in gen_ed_courses.get("aesthetics", []):
-                categories["gen_ed"]["aesthetics"].add(course["code"])
+            # Map each subcategory properly
+            for subcategory in ["wellness", "entrepreneurship", "language_communication", "thai_citizen_global", "aesthetics"]:
+                for course in gen_ed_courses.get(subcategory, []):
+                    categories["gen_ed"][subcategory][course["code"]] = course
+                    categories["all_courses"][course["code"]] = course
     
     return categories
+
+def get_prerequisite_relationships():
+    """Load prerequisite relationships from course data files."""
+    course_data_dir = Path(__file__).parent.parent / "course_data"
+    prerequisites = {}
+    
+    # Load from B-IE files (most comprehensive)
+    for ie_file in ["B-IE-2565.json", "B-IE-2560.json"]:  # Try 2565 first (newer)
+        ie_path = course_data_dir / ie_file
+        if ie_path.exists():
+            try:
+                with open(ie_path, 'r', encoding='utf-8') as f:
+                    ie_data = json.load(f)
+                    
+                    # Process both course sections
+                    for course in ie_data.get("industrial_engineering_courses", []):
+                        code = course.get("code")
+                        prereqs = course.get("prerequisites", [])
+                        if code and prereqs:
+                            prerequisites[code] = prereqs
+                    
+                break  # Use first available file
+            except Exception as e:
+                continue
+    
+    return prerequisites
 
 def classify_course_with_proper_detection(course_code, course_name="", course_categories=None):
     """
@@ -72,7 +97,7 @@ def classify_course_with_proper_detection(course_code, course_name="", course_ca
     
     # Check IE Core courses first
     if code in course_categories["ie_core"]:
-        # Determine year/semester for IE core courses
+        # Determine year/semester for IE core courses based on typical curriculum flow
         year1_first = ["01417167", "01420111", "01420113", "01403117", "01403114", "01208111"]
         year1_second = ["01417168", "01420112", "01420114", "01208281", "01204111"]
         year2_first = ["01417267", "01208221", "01208241", "01213211", "01205201"]
@@ -105,55 +130,13 @@ def classify_course_with_proper_detection(course_code, course_name="", course_ca
     if code in course_categories["technical_electives"]:
         return ("technical_electives", "technical", True, None, None)
     
-    # Check Gen-Ed courses
+    # Check Gen-Ed courses with proper subcategory detection
     for subcategory, courses in course_categories["gen_ed"].items():
         if code in courses:
             return ("gen_ed", subcategory, True, None, None)
     
-    # Unidentified
+    # Unidentified course
     return ("unidentified", "unknown", False, None, None)
-
-def get_prerequisite_relationships():
-    """Define prerequisite relationships for drawing arrows."""
-    return {
-        # Math sequence
-        "01417168": ["01417167"],
-        "01417267": ["01417168"],
-        
-        # Physics sequence
-        "01420112": ["01420111"],
-        "01420114": ["01420113"],
-        
-        # Chemistry lab
-        "01403114": ["01403117"],
-        
-        # Core IE sequence
-        "01206221": ["01417168"],
-        "01206222": ["01417267"], 
-        "01206223": ["01206221"],
-        "01206251": ["01417168"],
-        "01206321": ["01417267"],
-        "01206322": ["01206221"],
-        "01206323": ["01206321"],
-        "01206341": ["01206312"],
-        "01206342": ["01206321"],
-        "01206343": ["01206342"],
-        "01206361": ["01206221", "01204111"],
-        "01206371": ["01206251", "01206311"],
-        "01206381": ["01206223", "01206341"],
-        "01206382": ["01206381"],
-        "01206452": ["01206251"],
-        "01206499": ["01206495"],
-        
-        # Engineering courses
-        "01208221": ["01417168", "01420111"],
-        "01208241": ["01417168", "01420112"],
-        "01205201": ["01420112"],
-        "01205202": ["01205201"],
-        "01206311": ["01213211", "01208281"],
-        "01208381": ["01208241"],
-        "01213211": ["01403117"]
-    }
 
 def create_semester_flow_html(student_info, semesters, validation_results, course_data=None):
     """
@@ -252,7 +235,7 @@ def create_semester_flow_html(student_info, semesters, validation_results, cours
         }
     }
     
-    # Get prerequisite relationships
+    # Get prerequisite relationships from actual course data
     prerequisites = get_prerequisite_relationships()
     
     # Generate CSS styles with prerequisite arrows
@@ -545,6 +528,19 @@ def create_semester_flow_html(student_info, semesters, validation_results, cours
             margin: 0 0 10px 0;
             color: #2c3e50;
         }
+        
+        .credit-requirements {
+            background: #e8f5e8;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 12px;
+        }
+        
+        .credit-requirements h4 {
+            margin: 0 0 10px 0;
+            color: #27ae60;
+        }
     </style>
     """
     
@@ -595,6 +591,19 @@ def create_semester_flow_html(student_info, semesters, validation_results, cours
             <div class="prerequisite-info">
                 <h4>💡 How to read prerequisites:</h4>
                 <p>Hover over any course box to see its prerequisite requirements. Courses are arranged in chronological order showing the recommended progression path.</p>
+            </div>
+            
+            <div class="credit-requirements">
+                <h4>📋 Credit Requirements (Total: 140 credits)</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                    <div>• IE Core: 110 credits</div>
+                    <div>• Wellness: 7 credits</div>
+                    <div>• Entrepreneurship: 3 credits</div>
+                    <div>• Language & Communication: 15 credits</div>
+                    <div>• Thai Citizen & Global: 2 credits</div>
+                    <div>• Aesthetics: 3 credits</div>
+                    <div>• Free Electives: Variable</div>
+                </div>
             </div>
     """
     
@@ -661,17 +670,17 @@ def create_semester_flow_html(student_info, semesters, validation_results, cours
     # Add electives section with proper categorization
     html_content += '''
     <div class="electives-section">
-        <h2 style="text-align: center; color: #2c3e50; margin-bottom: 20px;">Elective Courses</h2>
+        <h2 style="text-align: center; color: #2c3e50; margin-bottom: 20px;">Elective Courses & Requirements</h2>
         <div class="electives-grid">
     '''
     
     # Collect elective courses from student's transcript using proper classification
     elective_courses = {
-        "Wellness (Gen-Ed)": [],
-        "Entrepreneurship (Gen-Ed)": [],
-        "Language & Communication (Gen-Ed)": [],
-        "Thai Citizen & Global (Gen-Ed)": [],
-        "Aesthetics (Gen-Ed)": [],
+        "Wellness (7 Credits Required)": [],
+        "Entrepreneurship (3 Credits Required)": [],
+        "Language & Communication (15 Credits Required)": [],
+        "Thai Citizen & Global (2 Credits Required)": [],
+        "Aesthetics (3 Credits Required)": [],
         "Technical Electives": [],
         "Free Electives": [],
         "Unidentified Courses": []
@@ -712,15 +721,15 @@ def create_semester_flow_html(student_info, semesters, validation_results, cours
                     elective_courses["Technical Electives"].append(course_info)
                 elif category == "gen_ed":
                     if subcategory == "wellness":
-                        elective_courses["Wellness (Gen-Ed)"].append(course_info)
+                        elective_courses["Wellness (7 Credits Required)"].append(course_info)
                     elif subcategory == "entrepreneurship":
-                        elective_courses["Entrepreneurship (Gen-Ed)"].append(course_info)
+                        elective_courses["Entrepreneurship (3 Credits Required)"].append(course_info)
                     elif subcategory == "language_communication":
-                        elective_courses["Language & Communication (Gen-Ed)"].append(course_info)
+                        elective_courses["Language & Communication (15 Credits Required)"].append(course_info)
                     elif subcategory == "thai_citizen_global":
-                        elective_courses["Thai Citizen & Global (Gen-Ed)"].append(course_info)
+                        elective_courses["Thai Citizen & Global (2 Credits Required)"].append(course_info)
                     elif subcategory == "aesthetics":
-                        elective_courses["Aesthetics (Gen-Ed)"].append(course_info)
+                        elective_courses["Aesthetics (3 Credits Required)"].append(course_info)
                 elif category == "unidentified":
                     elective_courses["Unidentified Courses"].append(course_info)
                     unidentified_count += 1
@@ -729,41 +738,51 @@ def create_semester_flow_html(student_info, semesters, validation_results, cours
     
     # Generate electives HTML with proper category styling
     category_styles = {
-        "Wellness (Gen-Ed)": "wellness",
-        "Entrepreneurship (Gen-Ed)": "entrepreneurship", 
-        "Language & Communication (Gen-Ed)": "language",
-        "Thai Citizen & Global (Gen-Ed)": "thai-citizen",
-        "Aesthetics (Gen-Ed)": "aesthetics",
+        "Wellness (7 Credits Required)": "wellness",
+        "Entrepreneurship (3 Credits Required)": "entrepreneurship", 
+        "Language & Communication (15 Credits Required)": "language",
+        "Thai Citizen & Global (2 Credits Required)": "thai-citizen",
+        "Aesthetics (3 Credits Required)": "aesthetics",
         "Technical Electives": "technical",
         "Unidentified Courses": "unidentified"
     }
     
     for category, courses in elective_courses.items():
-        if courses:  # Only show categories with courses
+        if courses or "Required" in category:  # Show categories with courses OR required categories
             style_class = category_styles.get(category, "")
+            
+            # Calculate credits earned in this category
+            earned_credits = sum(c["credits"] for c in courses if c["grade"] not in ["F", "W", "N", ""])
+            
             html_content += f'''
             <div class="elective-category">
                 <div class="category-header {style_class}">{category}</div>
+                <div style="text-align: center; margin-bottom: 10px; font-weight: bold; color: #2c3e50;">
+                    Credits Earned: {earned_credits}
+                </div>
             '''
             
-            for course in courses:
-                css_class = "course-box"
-                if course["grade"] in ["A", "B+", "B", "C+", "C", "D+", "D", "P"]:
-                    css_class += " course-completed"
-                elif course["grade"] == "F":
-                    css_class += " course-failed"
-                elif course["grade"] == "W":
-                    css_class += " course-withdrawn"
-                elif not course.get("is_identified", True):
-                    css_class += " course-unidentified"
-                
-                html_content += f'''
-                <div class="{css_class}">
-                    <div class="course-code">{course["code"]}</div>
-                    <div class="course-name">{course["name"]}</div>
-                    <div class="course-info">{course["credits"]} credits • {course["grade"]} • {course["semester"]}</div>
-                </div>
-                '''
+            if courses:
+                for course in courses:
+                    css_class = "course-box"
+                    if course["grade"] in ["A", "B+", "B", "C+", "C", "D+", "D", "P"]:
+                        css_class += " course-completed"
+                    elif course["grade"] == "F":
+                        css_class += " course-failed"
+                    elif course["grade"] == "W":
+                        css_class += " course-withdrawn"
+                    elif not course.get("is_identified", True):
+                        css_class += " course-unidentified"
+                    
+                    html_content += f'''
+                    <div class="{css_class}">
+                        <div class="course-code">{course["code"]}</div>
+                        <div class="course-name">{course["name"]}</div>
+                        <div class="course-info">{course["credits"]} credits • {course["grade"]} • {course["semester"]}</div>
+                    </div>
+                    '''
+            else:
+                html_content += '<div style="text-align: center; color: #7f8c8d; font-style: italic;">No courses taken yet</div>'
             
             html_content += '</div>'  # End elective-category
     
