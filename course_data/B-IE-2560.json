@@ -1,0 +1,607 @@
+{
+  "industrial_engineering_courses": [
+    {
+      "code": "01206221",
+      "name": "Applied Probability and Statistics for Engineers",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01417168"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206222",
+      "name": "Applied Mathematics for Industrial Engineers",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01417267"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206223",
+      "name": "Introduction to Experimental Design for Engineers",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206221"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206251",
+      "name": "Engineering Economy",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206272",
+      "name": "Industrial Safety",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206311",
+      "name": "Manufacturing Processes I",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01213211"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206312",
+      "name": "Industrial Study",
+      "credits": "1(0-3-2)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206321",
+      "name": "Operations Research for Engineers I",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206221"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206322",
+      "name": "Quality Control",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206221"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206323",
+      "name": "Operations Research for Engineers II",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206321"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206341",
+      "name": "Industrial Work Study",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206221"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206342",
+      "name": "Production Planning and Control",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206321"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206343",
+      "name": "Industrial Plant Design",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206341"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206361",
+      "name": "Computer Applications for Industrial Engineers",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206221"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206362",
+      "name": "Automatic Production System",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01205201"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206371",
+      "name": "Maintenance Engineering",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206221"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206381",
+      "name": "Industrial Engineering Laboratory I",
+      "credits": "1(0-3-2)",
+      "prerequisites": [
+        "01206221"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206382",
+      "name": "Industrial Engineering Laboratory II",
+      "credits": "1(0-3-2)",
+      "prerequisites": [
+        "01206381"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206390",
+      "name": "Co-operative Education Preparation for Engineers",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206399",
+      "name": "Internship",
+      "credits": "1",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206411",
+      "name": "Industrial Instrumentation and Measurement",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206221"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206412",
+      "name": "Tool Engineering",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206311"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206413",
+      "name": "Industrial Pollution",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206311"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206414",
+      "name": "Manufacturing Processes II",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206311"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206421",
+      "name": "Simulation",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206321"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206422",
+      "name": "Industrial Quality Assurance",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206423",
+      "name": "Advanced Experimental Design for Engineers",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206223"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206424",
+      "name": "Quality Engineering",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206322"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206431",
+      "name": "Industrial Management",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206432",
+      "name": "Management Information System for Engineers",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206361"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206441",
+      "name": "Engineering Risk Analysis",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206221",
+        "01206251"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206442",
+      "name": "Energy Management",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206341"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206443",
+      "name": "Ergonomics",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206341"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206444",
+      "name": "Industrial Forecasting",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206221"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206445",
+      "name": "Inventory Control",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206321"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206446",
+      "name": "Value Engineering",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206311"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206447",
+      "name": "Productivity Measurement and Management",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206341"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206448",
+      "name": "Shop Floor Control",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206341"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206451",
+      "name": "Industrial and Commercial Laws",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206452",
+      "name": "Industrial Cost Analysis",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206221"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206453",
+      "name": "Industrial Project Feasibility Study",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206251"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206461",
+      "name": "System Engineering",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206221"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206462",
+      "name": "Logistics System Design and Management",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206321"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206463",
+      "name": "Enterprise Resources Planning",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206342",
+        "01206361"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206464",
+      "name": "Supply Chain Management and Modeling",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01206321"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01206465",
+      "name": "Engineering Project Management",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206490",
+      "name": "Co-operative Education",
+      "credits": "7",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206495",
+      "name": "Industrial Engineering Project Preparation",
+      "credits": "1(0-3-2)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206496",
+      "name": "Selected Topics in Industrial Engineering",
+      "credits": "1-3",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206497",
+      "name": "Seminar",
+      "credits": "1",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206498",
+      "name": "Special Problems",
+      "credits": "1-3",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206499",
+      "name": "Industrial Engineering Project",
+      "credits": "2(0-6-3)",
+      "prerequisites": [
+        "01206495"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01200431",
+      "name": "Principles of Rail Engineering",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01200434",
+      "name": "Rail Infrastructure",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01200431"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01200435",
+      "name": "Rail System Operation and Maintenance",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01200431"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01204111",
+      "name": "Computers and Programming",
+      "credits": "3(2-3-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01205201",
+      "name": "Introduction to Electrical Engineering",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01205202",
+      "name": "Electrical Engineering Laboratory I",
+      "credits": "1(0-3-2)",
+      "prerequisites": [
+        "01205201"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01208111",
+      "name": "Engineering Drawing",
+      "credits": "3(2-3-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01208221",
+      "name": "Engineering Mechanics I",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01417167"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01208241",
+      "name": "Thermodynamics",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01208281",
+      "name": "Workshop Practice",
+      "credits": "1(0-3-2)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01208381",
+      "name": "Mechanical Engineering Laboratory I",
+      "credits": "1(0-3-2)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01213211",
+      "name": "Materials Science for Engineers",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01403114",
+      "name": "Laboratory in Fundamentals of General Chemistry",
+      "credits": "1(0-3-2)",
+      "prerequisites": [],
+      "corequisites": [],
+      "prerequisite_groups": [
+        {
+          "courses": ["01403117"],
+          "concurrent_allowed": true
+        }
+      ]
+    },
+    {
+      "code": "01403117",
+      "name": "Fundamentals of General Chemistry",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01417167",
+      "name": "Engineering Mathematics I",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01417168",
+      "name": "Engineering Mathematics II",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01417167"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01417267",
+      "name": "Engineering Mathematics III",
+      "credits": "3(3-0-6)",
+      "prerequisites": [
+        "01417168"
+      ],
+      "corequisites": []
+    },
+    {
+      "code": "01420111",
+      "name": "General Physics I",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01420113",
+      "name": "Laboratory in Physics I",
+      "credits": "1(0-3-2)",
+      "prerequisites": [],
+      "corequisites": [],
+      "prerequisite_groups": [
+        {
+          "courses": ["01420111"],
+          "concurrent_allowed": true
+        },
+        {
+          "courses": ["01420117"],
+          "concurrent_allowed": true
+        }
+      ]
+    }
+  ]
+}
