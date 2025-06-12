@@ -116,6 +116,12 @@
         "category": "Language and Communication"
       },
       {
+        "code": "01999021", 
+        "name": "Thai Language for Communication",
+        "credits": "3(3-0-6)",
+        "category": "Language and Communication"
+      },
+      {
         "code": "01355111",
         "name": "Foundation English I",
         "credits": "3(3-0-6)",
@@ -168,6 +174,12 @@
       {
         "code": "01999034",
         "name": "Art Perception",
+        "credits": "3(3-0-6)",
+        "category": "Aesthetics"
+      },
+      {
+        "code": "01255101",
+        "name": "Man and Sea",
         "credits": "3(3-0-6)",
         "category": "Aesthetics"
       },
