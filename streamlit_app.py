@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 import tempfile
 import os
+import traceback
 
 # Add modules to path
 sys.path.append(str(Path(__file__).parent))
@@ -15,9 +16,102 @@ from utils.pdf_extractor import PDFExtractor
 from utils.validation_adapter import ValidationAdapter
 from validator import CourseRegistrationValidator
 
-# Import the new generators
-from utils.excel_generator import create_smart_registration_excel
+# Import the fixed generators
+from utils.excel_generator import create_smart_registration_excel, classify_course, load_course_categories
 from utils.semester_flow_generator import create_semester_flow_html
+
+def safe_course_classification():
+    """Safely load course categories with error handling."""
+    try:
+        return load_course_categories()
+    except Exception as e:
+        st.error(f"Error loading course categories: {e}")
+        return {
+            "ie_core": {},
+            "technical_electives": {},
+            "gen_ed": {
+                "wellness": {},
+                "entrepreneurship": {},
+                "language_communication": {},
+                "thai_citizen_global": {},
+                "aesthetics": {}
+            },
+            "all_courses": {}
+        }
+
+def analyze_unidentified_courses(semesters, course_categories):
+    """Analyze transcript for unidentified courses."""
+    unidentified_courses = []
+    
+    try:
+        for semester in semesters:
+            for course in semester.get("courses", []):
+                course_code = course.get("code", "")
+                course_name = course.get("name", "")
+                
+                if course_code:
+                    category, subcategory, is_identified = classify_course(
+                        course_code, 
+                        course_name,
+                        course_categories
+                    )
+                    
+                    if not is_identified:
+                        unidentified_courses.append({
+                            "code": course_code,
+                            "name": course_name,
+                            "semester": semester.get("semester", ""),
+                            "credits": course.get("credits", 0),
+                            "grade": course.get("grade", "")
+                        })
+    except Exception as e:
+        st.error(f"Error analyzing courses: {e}")
+    
+    return unidentified_courses
+
+def calculate_credit_summary(semesters, course_categories):
+    """Calculate credit summary by category."""
+    try:
+        summary = {
+            "ie_core": 0,
+            "wellness": 0,
+            "entrepreneurship": 0,
+            "language_communication": 0,
+            "thai_citizen_global": 0,
+            "aesthetics": 0,
+            "technical_electives": 0,
+            "free_electives": 0,
+            "unidentified": 0
+        }
+        
+        for semester in semesters:
+            for course in semester.get("courses", []):
+                course_code = course.get("code", "")
+                course_name = course.get("name", "")
+                grade = course.get("grade", "")
+                credits = course.get("credits", 0)
+                
+                # Only count completed courses
+                if grade in ["A", "B+", "B", "C+", "C", "D+", "D", "P"]:
+                    category, subcategory, is_identified = classify_course(
+                        course_code, course_name, course_categories
+                    )
+                    
+                    if category == "ie_core":
+                        summary["ie_core"] += credits
+                    elif category == "gen_ed":
+                        summary[subcategory] += credits
+                    elif category == "technical_electives":
+                        summary["technical_electives"] += credits
+                    elif category == "unidentified":
+                        summary["unidentified"] += credits
+                    else:
+                        summary["free_electives"] += credits
+        
+        return summary
+    except Exception as e:
+        st.error(f"Error calculating credit summary: {e}")
+        return {}
 
 def main():
     st.set_page_config(
@@ -27,7 +121,7 @@ def main():
     )
     
     st.title("🎓 KU Industrial Engineering Course Validator")
-    st.markdown("*Smart Registration Planning with Advanced Visualizations*")
+    st.markdown("*Smart Registration Planning with Advanced Course Detection*")
     st.markdown("*Created for Raphin P.*")
     
     # Initialize session state
@@ -43,9 +137,15 @@ def main():
         st.session_state.processing_complete = False
     if 'unidentified_count' not in st.session_state:
         st.session_state.unidentified_count = 0
+    if 'course_categories' not in st.session_state:
+        st.session_state.course_categories = None
     
     # Load course data
-    available_course_data = load_comprehensive_course_data()
+    try:
+        available_course_data = load_comprehensive_course_data()
+    except Exception as e:
+        st.error(f"Error loading course data: {e}")
+        available_course_data = {}
     
     # Sidebar
     with st.sidebar:
@@ -61,6 +161,11 @@ def main():
             if selected_catalog:
                 st.session_state.selected_course_data = available_course_data[selected_catalog]
                 st.success(f"✅ Using: {available_course_data[selected_catalog]['filename']}")
+                
+                # Load course categories for classification
+                if st.session_state.course_categories is None:
+                    with st.spinner("Loading course classification system..."):
+                        st.session_state.course_categories = safe_course_classification()
         else:
             st.error("❌ No course data files found")
             st.stop()
@@ -78,6 +183,7 @@ def main():
             st.info(f"📄 File: {pdf_file.name}")
             st.info(f"📊 Size: {len(pdf_file.getvalue()) / 1024:.1f} KB")
             
+            # Reset processing when new file is uploaded
             if 'last_pdf_name' not in st.session_state or st.session_state.last_pdf_name != pdf_file.name:
                 st.session_state.processing_complete = False
                 st.session_state.student_info = {}
@@ -92,14 +198,14 @@ def main():
         if not st.session_state.processing_complete:
             with st.spinner("🔄 Processing PDF and creating advanced course analysis..."):
                 
-                pdf_bytes = pdf_file.getvalue()
-                
                 try:
+                    pdf_bytes = pdf_file.getvalue()
+                    
                     # Extract text from PDF
                     extracted_text = extract_text_from_pdf_bytes(pdf_bytes)
                     
                     if not extracted_text:
-                        st.error("❌ No text extracted from PDF")
+                        st.error("❌ No text extracted from PDF. Please ensure the PDF contains readable text.")
                         st.stop()
                     
                     # Process the extracted text
@@ -107,7 +213,7 @@ def main():
                     student_info, semesters, _ = extractor.process_pdf(None, extracted_text)
                     
                     if not student_info or not semesters:
-                        st.error("❌ Failed to process transcript data")
+                        st.error("❌ Failed to process transcript data. Please check if the PDF format is supported.")
                         st.stop()
                     
                     # Validate data
@@ -115,50 +221,70 @@ def main():
                         json.dump(st.session_state.selected_course_data['data'], tmp_file)
                         tmp_path = tmp_file.name
                     
-                    validator = CourseRegistrationValidator(tmp_path)
-                    passed_courses_history = validator.build_passed_courses_history(semesters)
-                    
-                    all_results = []
-                    for i, semester in enumerate(semesters):
-                        credit_valid, credit_reason = validator.validate_credit_limit(semester)
-                        if not credit_valid:
-                            all_results.append({
-                                "semester": semester.get("semester", ""),
-                                "semester_index": i,
-                                "course_code": "CREDIT_LIMIT", 
-                                "course_name": "Credit Limit Check",
-                                "grade": "N/A",
-                                "is_valid": True,
-                                "reason": credit_reason,
-                                "type": "credit_limit"
-                            })
+                    try:
+                        validator = CourseRegistrationValidator(tmp_path)
+                        passed_courses_history = validator.build_passed_courses_history(semesters)
                         
-                        for course in semester.get("courses", []):
-                            is_valid, reason = validator.validate_course(
-                                course, i, semesters, passed_courses_history, all_results
-                            )
+                        all_results = []
+                        
+                        # Validate each semester
+                        for i, semester in enumerate(semesters):
+                            # Check credit limit
+                            credit_valid, credit_reason = validator.validate_credit_limit(semester)
+                            if not credit_valid:
+                                all_results.append({
+                                    "semester": semester.get("semester", ""),
+                                    "semester_index": i,
+                                    "course_code": "CREDIT_LIMIT", 
+                                    "course_name": "Credit Limit Check",
+                                    "grade": "N/A",
+                                    "is_valid": True,  # Credit limits are warnings, not errors
+                                    "reason": credit_reason,
+                                    "type": "credit_limit"
+                                })
                             
-                            all_results.append({
-                                "semester": semester.get("semester", ""),
-                                "semester_index": i,
-                                "course_code": course.get("code", ""),
-                                "course_name": course.get("name", ""),
-                                "grade": course.get("grade", ""),
-                                "is_valid": is_valid,
-                                "reason": reason,
-                                "type": "prerequisite"
-                            })
+                            # Validate each course
+                            for course in semester.get("courses", []):
+                                is_valid, reason = validator.validate_course(
+                                    course, i, semesters, passed_courses_history, all_results
+                                )
+                                
+                                all_results.append({
+                                    "semester": semester.get("semester", ""),
+                                    "semester_index": i,
+                                    "course_code": course.get("code", ""),
+                                    "course_name": course.get("name", ""),
+                                    "grade": course.get("grade", ""),
+                                    "is_valid": is_valid,
+                                    "reason": reason,
+                                    "type": "prerequisite"
+                                })
+                        
+                        # Propagate invalidation
+                        validator.propagate_invalidation(semesters, all_results)
                     
-                    validator.propagate_invalidation(semesters, all_results)
-                    os.unlink(tmp_path)
+                    finally:
+                        # Clean up temp file
+                        if os.path.exists(tmp_path):
+                            os.unlink(tmp_path)
                     
+                    # Store results
                     st.session_state.student_info = student_info
                     st.session_state.semesters = semesters
                     st.session_state.validation_results = all_results
                     st.session_state.processing_complete = True
                     
+                    # Analyze unidentified courses
+                    if st.session_state.course_categories:
+                        unidentified_courses = analyze_unidentified_courses(
+                            semesters, st.session_state.course_categories
+                        )
+                        st.session_state.unidentified_count = len(unidentified_courses)
+                    
                 except Exception as e:
                     st.error(f"❌ Error during processing: {e}")
+                    with st.expander("Debug Information"):
+                        st.code(traceback.format_exc())
                     st.stop()
         
         # Display results
@@ -199,54 +325,71 @@ def main():
                             st.error(f"**{result.get('semester')}:** {result.get('course_code')} - {result.get('course_name')}")
                             st.write(f"   *Issue:* {result.get('reason')}")
             
-            # Check for unidentified courses using proper detection
-            from utils.excel_generator import classify_course, load_course_categories
-            course_categories = load_course_categories()
-            unidentified_courses = []
-            
-            for semester in st.session_state.semesters:
-                for course in semester.get("courses", []):
-                    category, subcategory, is_identified = classify_course(
-                        course.get("code", ""), 
-                        course.get("name", ""),
-                        course_categories
-                    )
-                    if not is_identified:
-                        unidentified_courses.append({
-                            "code": course.get("code", ""),
-                            "name": course.get("name", ""),
-                            "semester": semester.get("semester", "")
-                        })
-            
-            st.session_state.unidentified_count = len(unidentified_courses)
-            
-            if unidentified_courses:
-                st.warning(f"⚠️ **Database Update Needed:** {len(unidentified_courses)} unidentified courses found")
-                with st.expander("🔍 Unidentified Courses - Require Classification", expanded=True):
-                    for course in unidentified_courses:
-                        st.write(f"• **{course['code']}** - {course['name']} ({course['semester']})")
-                    st.info("These courses need to be added to the course classification system.")
+            # Check for unidentified courses
+            if st.session_state.course_categories:
+                unidentified_courses = analyze_unidentified_courses(
+                    st.session_state.semesters, 
+                    st.session_state.course_categories
+                )
+                st.session_state.unidentified_count = len(unidentified_courses)
+                
+                if unidentified_courses:
+                    st.warning(f"⚠️ **Database Update Needed:** {len(unidentified_courses)} unidentified courses found")
+                    with st.expander("🔍 Unidentified Courses - Require Classification", expanded=True):
+                        for course in unidentified_courses:
+                            st.write(f"• **{course['code']}** - {course['name']} ({course['semester']}) - {course['credits']} credits")
+                        st.info("💡 These courses need to be added to the course classification system for accurate analysis.")
+                
+                # Show credit summary
+                credit_summary = calculate_credit_summary(
+                    st.session_state.semesters, 
+                    st.session_state.course_categories
+                )
+                
+                if credit_summary:
+                    st.divider()
+                    st.subheader("📊 Credit Summary by Category")
+                    
+                    col_cr1, col_cr2, col_cr3 = st.columns(3)
+                    
+                    with col_cr1:
+                        st.metric("IE Core", f"{credit_summary.get('ie_core', 0)}", help="Required: ~110 credits")
+                        st.metric("Wellness", f"{credit_summary.get('wellness', 0)}", help="Required: 7 credits")
+                        st.metric("Entrepreneurship", f"{credit_summary.get('entrepreneurship', 0)}", help="Required: 3 credits")
+                    
+                    with col_cr2:
+                        st.metric("Language & Communication", f"{credit_summary.get('language_communication', 0)}", help="Required: 15 credits")
+                        st.metric("Thai Citizen & Global", f"{credit_summary.get('thai_citizen_global', 0)}", help="Required: 2 credits")
+                        st.metric("Aesthetics", f"{credit_summary.get('aesthetics', 0)}", help="Required: 3 credits")
+                    
+                    with col_cr3:
+                        st.metric("Technical Electives", f"{credit_summary.get('technical_electives', 0)}", help="Variable requirement")
+                        st.metric("Free Electives", f"{credit_summary.get('free_electives', 0)}", help="Variable requirement")
+                        st.metric("Unidentified", f"{credit_summary.get('unidentified', 0)}", help="Need classification", delta_color="off")
             
             # Visualization Options
             st.divider()
-            st.header("📊 Advanced Visualizations")
+            st.header("📊 Advanced Visualizations & Downloads")
             
-            # Generate semester flow chart (always show this)
+            # Generate flow chart
             try:
-                flow_html, _ = create_semester_flow_html(
-                    st.session_state.student_info,
-                    st.session_state.semesters,
-                    st.session_state.validation_results
-                )
+                with st.spinner("Generating interactive curriculum flow chart..."):
+                    flow_html, flow_unidentified = create_semester_flow_html(
+                        st.session_state.student_info,
+                        st.session_state.semesters,
+                        st.session_state.validation_results
+                    )
                 
-                st.subheader("🗂️ Semester-Based Curriculum Flow Chart")
-                st.markdown("*Interactive curriculum visualization showing course progression*")
+                st.subheader("🗂️ Interactive Curriculum Flow Chart")
+                st.markdown("*Visual curriculum progression with prerequisite relationships*")
                 
-                # Display the HTML in Streamlit
-                st.components.v1.html(flow_html, height=800, scrolling=True)
+                # Display the HTML
+                st.components.v1.html(flow_html, height=900, scrolling=True)
                 
             except Exception as e:
                 st.error(f"Error generating flow chart: {e}")
+                with st.expander("Debug Information"):
+                    st.code(traceback.format_exc())
             
             # Download section
             st.divider()
@@ -257,19 +400,20 @@ def main():
             with col_dl1:
                 # Generate Smart Excel format
                 try:
-                    excel_bytes, excel_unidentified = create_smart_registration_excel(
-                        st.session_state.student_info,
-                        st.session_state.semesters,
-                        st.session_state.validation_results
-                    )
+                    with st.spinner("Creating smart Excel analysis..."):
+                        excel_bytes, excel_unidentified = create_smart_registration_excel(
+                            st.session_state.student_info,
+                            st.session_state.semesters,
+                            st.session_state.validation_results
+                        )
                     
                     if excel_bytes:
                         st.download_button(
-                            label="📋 Smart Excel Plan",
+                            label="📋 Smart Excel Analysis",
                             data=excel_bytes,
-                            file_name=f"KU_IE_smart_plan_{st.session_state.student_info.get('id', 'unknown')}.xlsx",
+                            file_name=f"KU_IE_smart_analysis_{st.session_state.student_info.get('id', 'unknown')}.xlsx",
                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                            help="Intelligent course classification with alerts for unidentified courses",
+                            help="Comprehensive course analysis with alerts and recommendations",
                             use_container_width=True
                         )
                         
@@ -279,7 +423,9 @@ def main():
                         st.error("❌ Excel generation failed")
                         
                 except Exception as e:
-                    st.error(f"❌ Excel error: {e}")
+                    st.error(f"❌ Excel error: {str(e)[:50]}...")
+                    with st.expander("Debug"):
+                        st.code(str(e))
             
             with col_dl2:
                 # HTML Flow Chart download
@@ -303,14 +449,13 @@ def main():
                         st.warning(f"⚠️ {flow_unidentified} unidentified")
                         
                 except Exception as e:
-                    st.error(f"❌ Flow chart error: {e}")
+                    st.error(f"❌ Flow chart error: {str(e)[:50]}...")
             
             with col_dl3:
                 # Text report
                 try:
-                    validator = CourseRegistrationValidator(
-                        str(Path(__file__).parent / "course_data" / st.session_state.selected_course_data['filename'])
-                    )
+                    course_data_path = str(Path(__file__).parent / "course_data" / st.session_state.selected_course_data['filename'])
+                    validator = CourseRegistrationValidator(course_data_path)
                     report_text = validator.generate_summary_report(
                         st.session_state.student_info, 
                         st.session_state.semesters, 
@@ -322,38 +467,48 @@ def main():
                         data=report_text,
                         file_name=f"validation_report_{st.session_state.student_info.get('id', 'unknown')}.txt",
                         mime="text/plain",
+                        help="Detailed prerequisite validation report",
                         use_container_width=True
                     )
                 except Exception as e:
-                    st.error(f"❌ Report error: {e}")
+                    st.error(f"❌ Report error: {str(e)[:50]}...")
             
             with col_dl4:
                 # JSON data
-                export_data = {
-                    "student_info": st.session_state.student_info,
-                    "semesters": st.session_state.semesters,
-                    "validation_results": st.session_state.validation_results,
-                    "unidentified_count": st.session_state.unidentified_count
-                }
-                
-                st.download_button(
-                    label="💾 Raw Data (JSON)",
-                    data=json.dumps(export_data, indent=2),
-                    file_name=f"transcript_data_{st.session_state.student_info.get('id', 'unknown')}.json",
-                    mime="application/json",
-                    use_container_width=True
-                )
+                try:
+                    export_data = {
+                        "student_info": st.session_state.student_info,
+                        "semesters": st.session_state.semesters,
+                        "validation_results": st.session_state.validation_results,
+                        "unidentified_count": st.session_state.unidentified_count,
+                        "metadata": {
+                            "course_catalog": st.session_state.selected_course_data.get('filename', ''),
+                            "generated_timestamp": str(pd.Timestamp.now()) if 'pd' in globals() else "unknown"
+                        }
+                    }
+                    
+                    st.download_button(
+                        label="💾 Raw Data (JSON)",
+                        data=json.dumps(export_data, indent=2),
+                        file_name=f"transcript_data_{st.session_state.student_info.get('id', 'unknown')}.json",
+                        mime="application/json",
+                        help="Raw extracted and validated data",
+                        use_container_width=True
+                    )
+                except Exception as e:
+                    st.error(f"❌ JSON error: {str(e)[:50]}...")
             
             # Process another file
             st.divider()
             if st.button("🔄 Process Another PDF", type="secondary"):
-                st.session_state.processing_complete = False
-                st.session_state.student_info = {}
-                st.session_state.semesters = []
-                st.session_state.validation_results = []
-                st.session_state.unidentified_count = 0
-                if 'last_pdf_name' in st.session_state:
-                    del st.session_state.last_pdf_name
+                # Reset all session state
+                for key in ['processing_complete', 'student_info', 'semesters', 'validation_results', 
+                           'unidentified_count', 'last_pdf_name']:
+                    if key in st.session_state:
+                        if key in ['student_info', 'semesters', 'validation_results']:
+                            st.session_state[key] = [] if key != 'student_info' else {}
+                        else:
+                            del st.session_state[key]
                 st.rerun()
     
     else:
@@ -373,22 +528,36 @@ def main():
             """)
         
         with col_info2:
-            st.markdown("### 🚀 New Features:")
-            st.markdown("• **Unidentified course detection** - Alerts for database updates needed")
-            st.markdown("• **Interactive curriculum flow chart** - Visual semester progression")
-            st.markdown("• **Smart Excel reports** - Organized by categories with validation status")
-            st.markdown("• **Multiple output formats** - HTML, Excel, PDF-ready layouts")
-            st.markdown("• **Color-coded status** - Easy visual identification of course status")
+            st.markdown("### 🚀 Key Features:")
+            st.markdown("• **Smart course detection** - Automatically categorizes courses")
+            st.markdown("• **Unidentified course alerts** - Highlights courses needing classification")
+            st.markdown("• **Interactive flow chart** - Visual semester progression")
+            st.markdown("• **Comprehensive Excel analysis** - Detailed credit breakdowns")
+            st.markdown("• **Prerequisite validation** - Checks course requirements")
+            st.markdown("• **Progress tracking** - Credit completion by category")
     
     # Status bar at bottom
     st.divider()
-    col_status1, col_status2 = st.columns([3, 1])
+    col_status1, col_status2, col_status3 = st.columns([2, 2, 1])
+    
     with col_status1:
         if st.session_state.unidentified_count > 0:
-            st.warning(f"⚠️ Database maintenance needed: {st.session_state.unidentified_count} unidentified courses found")
+            st.warning(f"⚠️ Database maintenance needed: {st.session_state.unidentified_count} unidentified courses")
+        elif st.session_state.processing_complete:
+            st.success("✅ All courses successfully classified")
+    
     with col_status2:
+        if st.session_state.processing_complete:
+            invalid_count = len([r for r in st.session_state.validation_results 
+                               if not r.get("is_valid", True) and r.get("course_code") != "CREDIT_LIMIT"])
+            if invalid_count > 0:
+                st.error(f"❌ {invalid_count} validation issues found")
+            else:
+                st.success("✅ All validations passed")
+    
+    with col_status3:
         st.markdown("*Created for Raphin P.*", 
-                   help="Advanced course validation system with visual curriculum mapping")
+                   help="Advanced course validation with smart detection")
 
 if __name__ == "__main__":
     main()
