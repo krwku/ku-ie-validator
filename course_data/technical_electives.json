@@ -1,0 +1,102 @@
+{
+  "technical_electives": [
+    {
+      "code": "01206390",
+      "name": "Co-operative Education Preparation for Engineers",
+      "credits": "1(1-0-2)",
+      "prerequisites": [],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206411",
+      "name": "Industrial Instrumentation and Measurement", 
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206361"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206412",
+      "name": "Tool Engineering",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206311"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206413",
+      "name": "Industrial Pollution",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206421",
+      "name": "Simulation",
+      "credits": "3(2-2-5)",
+      "prerequisites": ["01206221", "01206361"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206422",
+      "name": "Industrial Quality Assurance",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206322"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206441",
+      "name": "Engineering Risk Analysis",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206221"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206442",
+      "name": "Energy Management",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206443",
+      "name": "Ergonomics",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206341"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206461",
+      "name": "System Engineering",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206321"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206462",
+      "name": "Logistics System Design and Management",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206321"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206463",
+      "name": "Enterprise Resources Planning: ERP",
+      "credits": "3(2-2-5)",
+      "prerequisites": ["01206432"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206464",
+      "name": "Supply Chain Management and Modeling",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206462"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206490",
+      "name": "Co-operative Education",
+      "credits": "6(0-40-0)",
+      "prerequisites": ["01206390"],
+      "category": "Technical Electives"
+    }
+  ]
+}
