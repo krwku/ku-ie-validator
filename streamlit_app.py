@@ -35,7 +35,7 @@ def extract_text_from_pdf_bytes(pdf_bytes):
 def create_ku_ie_registration_excel(student_info, semesters, validation_results):
     """
     Create Excel file matching the KU IE registration format.
-    FIXED: Properly handles merged cells to avoid read-only errors.
+    PROPERLY FIXED: Handles merged cells correctly by avoiding conflicts.
     """
     try:
         from openpyxl import Workbook
@@ -98,8 +98,7 @@ def create_ku_ie_registration_excel(student_info, semesters, validation_results)
         ws['B2'].fill = yellow_fill
         ws['B2'].border = border
         
-        # FIXED: Properly handle merged cells by setting value BEFORE merging
-        # Year headers (row 4)
+        # Year headers (row 4) - Set value first, then merge
         year_headers = [
             ('B', 'E', 'Year 1'),
             ('F', 'I', 'Year 2'), 
@@ -108,18 +107,15 @@ def create_ku_ie_registration_excel(student_info, semesters, validation_results)
         ]
         
         for start_col, end_col, year_text in year_headers:
-            # Set value in the top-left cell FIRST
             cell = ws[f'{start_col}4']
             cell.value = year_text
             cell.font = header_font
             cell.alignment = center_align
             cell.border = border
             cell.fill = gray_fill
-            
-            # THEN merge the cells
             ws.merge_cells(f'{start_col}4:{end_col}4')
         
-        # Semester headers (row 5)
+        # Semester headers (row 5) - Set value first, then merge
         semester_cols = [
             ('B', 'C', 'First semester'),
             ('D', 'E', 'Second semester'),
@@ -132,26 +128,24 @@ def create_ku_ie_registration_excel(student_info, semesters, validation_results)
         ]
         
         for start_col, end_col, sem_text in semester_cols:
-            # Set value in the top-left cell FIRST
             cell = ws[f'{start_col}5']
             cell.value = sem_text
             cell.font = header_font
             cell.alignment = center_align
             cell.border = border
-            
-            # THEN merge the cells
             ws.merge_cells(f'{start_col}5:{end_col}5')
         
-        # IE COURSE section label
-        # Set value FIRST
-        cell = ws['A6']
-        cell.value = "IE\nCOURSE"
-        cell.font = header_font
-        cell.alignment = center_align
-        cell.border = border
+        # FIXED: IE COURSE section - Handle merging properly
+        # First, set the IE COURSE label in A6 only
+        ws['A6'] = "IE"
+        ws['A6'].font = header_font
+        ws['A6'].alignment = center_align
+        ws['A6'].border = border
         
-        # THEN merge
-        ws.merge_cells('A6:A16')
+        ws['A7'] = "COURSE"
+        ws['A7'].font = header_font
+        ws['A7'].alignment = center_align
+        ws['A7'].border = border
         
         # Create course mapping
         course_mapping = {}
@@ -168,11 +162,11 @@ def create_ku_ie_registration_excel(student_info, semesters, validation_results)
                     sem_key = f"Year{grid_year}_{semester_type}"
                     course_mapping[sem_key] = semester.get("courses", [])
         
-        # Fill IE courses (rows 6-15, slots 1-10)
+        # Fill IE courses (rows 8-17, slots 1-10) - AVOID the merged cell area
         for slot in range(1, 11):
-            row = 5 + slot
+            row = 7 + slot  # Start from row 8 to avoid A6 and A7
             
-            # Slot number
+            # NOW it's safe to set slot numbers since we're not in merged area
             ws[f'A{row}'] = str(slot)
             ws[f'A{row}'].alignment = center_align
             ws[f'A{row}'].border = border
@@ -214,20 +208,18 @@ def create_ku_ie_registration_excel(student_info, semesters, validation_results)
                         display_text = f"{course_code}\n{display_name}"
                         cell.value = display_text
                         
-                        # Color coding: green if passed, default if valid but not completed
+                        # Color coding: green if passed
                         if is_valid and grade not in ['F', 'W', 'N', '']:
                             cell.fill = green_fill
         
-        # GEN-ED section
-        gen_ed_start_row = 17
+        # GEN-ED section - starts after IE courses
+        gen_ed_start_row = 19  # Start after IE courses
         
-        # GEN-ED label - Set value FIRST, then merge
-        cell = ws[f'A{gen_ed_start_row}']
-        cell.value = "GEN-ED"
-        cell.font = header_font
-        cell.alignment = center_align
-        cell.border = border
-        ws.merge_cells(f'A{gen_ed_start_row}:A{gen_ed_start_row + 25}')
+        # GEN-ED label - Set value first, then merge
+        ws[f'A{gen_ed_start_row}'] = "GEN-ED"
+        ws[f'A{gen_ed_start_row}'].font = header_font
+        ws[f'A{gen_ed_start_row}'].alignment = center_align
+        ws[f'A{gen_ed_start_row}'].border = border
         
         # GEN-ED categories
         categories = [
@@ -240,9 +232,9 @@ def create_ku_ie_registration_excel(student_info, semesters, validation_results)
             ("Others", 4)
         ]
         
-        current_row = gen_ed_start_row
+        current_row = gen_ed_start_row + 1  # Start below GEN-ED label
         for category_name, num_slots in categories:
-            # Category header - Set value FIRST, then merge
+            # Category header - Set value first, then merge
             cell = ws[f'B{current_row}']
             cell.value = category_name
             cell.font = header_font
@@ -254,7 +246,7 @@ def create_ku_ie_registration_excel(student_info, semesters, validation_results)
             
             # Slots for this category
             for slot_num in range(1, num_slots + 1):
-                # Slot number
+                # Slot number in column A
                 ws[f'A{current_row}'] = str(slot_num)
                 ws[f'A{current_row}'].alignment = center_align
                 ws[f'A{current_row}'].border = border
@@ -270,7 +262,7 @@ def create_ku_ie_registration_excel(student_info, semesters, validation_results)
                 current_row += 1
         
         # Right side summary
-        summary_start_row = 6
+        summary_start_row = 8  # Align with course slots
         
         # Credit summary
         ws[f'R{summary_start_row}'] = "Credit Completed"
@@ -372,6 +364,7 @@ def main():
     
     st.title("🎓 KU Industrial Engineering Course Validator")
     st.markdown("*Complete Registration Planning and Validation System*")
+    st.markdown("*Created for Raphin P.*")  # YOUR MOTTO IS BACK! 
     
     # Initialize session state
     if 'student_info' not in st.session_state:
@@ -629,6 +622,13 @@ def main():
             st.markdown("• **Color-coded validation** - Green for completed")
             st.markdown("• **IE Core + Gen-Ed sections** - Complete coverage")
             st.markdown("• **Credit tracking** - Automatic calculations")
+    
+    # Status bar at bottom with your motto
+    st.divider()
+    col_status1, col_status2 = st.columns([3, 1])
+    with col_status2:
+        st.markdown("*Created for Raphin P.*", 
+                   help="This application was specially created for Raphin P.")
 
 if __name__ == "__main__":
     main()
