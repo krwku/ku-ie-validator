@@ -1,0 +1,581 @@
+{
+  "gen_ed_courses": {
+    "wellness": [
+      {
+        "code": "01175111",
+        "name": "Track and Field for Health",
+        "credits": "1(0-2-1)",
+        "category": "Wellness"
+      },
+      {
+        "code": "01175112", 
+        "name": "Badminton for Health",
+        "credits": "1(0-2-1)",
+        "category": "Wellness"
+      },
+      {
+        "code": "01175113",
+        "name": "Tennis for Health", 
+        "credits": "1(0-2-1)",
+        "category": "Wellness"
+      },
+      {
+        "code": "01175114",
+        "name": "Table Tennis for Health",
+        "credits": "1(0-2-1)", 
+        "category": "Wellness"
+      },
+      {
+        "code": "01175115",
+        "name": "Meditation with Shooting Activity",
+        "credits": "1(0-2-1)",
+        "category": "Wellness"
+      },
+      {
+        "code": "01101102",
+        "name": "Buddhist Economics for Well Being",
+        "credits": "3(3-0-6)",
+        "category": "Wellness"
+      },
+      {
+        "code": "01173151",
+        "name": "AIDS Education", 
+        "credits": "2(2-0-4)",
+        "category": "Wellness"
+      },
+      {
+        "code": "01999011",
+        "name": "Food for Mankind",
+        "credits": "3(3-0-6)",
+        "category": "Wellness"
+      },
+      {
+        "code": "01999012",
+        "name": "Heath for Life",
+        "credits": "3(3-0-6)",
+        "category": "Wellness"
+      }
+    ],
+    "entrepreneurship": [
+      {
+        "code": "01005101",
+        "name": "Modern Agriculture Technology",
+        "credits": "3(3-0-6)",
+        "category": "Entrepreneurship"
+      },
+      {
+        "code": "01131111",
+        "name": "Finance for Entrepreneurs", 
+        "credits": "3(3-0-6)",
+        "category": "Entrepreneurship"
+      },
+      {
+        "code": "01132101",
+        "name": "Modern Entrepreneur",
+        "credits": "3(3-0-6)",
+        "category": "Entrepreneurship"
+      },
+      {
+        "code": "01200101",
+        "name": "Innovative Thinking",
+        "credits": "3(3-0-6)",
+        "category": "Entrepreneurship"
+      },
+      {
+        "code": "01418102",
+        "name": "Information Technology for Entrepreneurs",
+        "credits": "3(2-2-5)",
+        "category": "Entrepreneurship"
+      }
+    ],
+    "thai_citizen_global": [
+      {
+        "code": "01999111",
+        "name": "Knowledge of the Land",
+        "credits": "1(1-0-2)",
+        "category": "Thai Citizen and Global Citizen"
+      },
+      {
+        "code": "01001317",
+        "name": "Kings and State Leaders on Agricultural Sector Development",
+        "credits": "1(1-0-2)",
+        "category": "Thai Citizen and Global Citizen"
+      }
+    ],
+    "language_communication": [
+      {
+        "code": "01361101",
+        "name": "Introductory Thai Usage",
+        "credits": "3(3-0-6)",
+        "category": "Language and Communication"
+      },
+      {
+        "code": "01361102", 
+        "name": "Thai Practical Writing",
+        "credits": "3(3-0-6)",
+        "category": "Language and Communication"
+      },
+      {
+        "code": "01355111",
+        "name": "Foundation English I",
+        "credits": "3(3-0-6)",
+        "category": "Language and Communication"
+      },
+      {
+        "code": "01355112",
+        "name": "Foundation English II",
+        "credits": "3(3-0-6)",
+        "category": "Language and Communication"
+      },
+      {
+        "code": "01355113",
+        "name": "Foundation English III",
+        "credits": "3(3-0-6)",
+        "category": "Language and Communication"
+      },
+      {
+        "code": "01418104",
+        "name": "IT Updates",
+        "credits": "3(2-2-5)",
+        "category": "Language and Communication"
+      },
+      {
+        "code": "01418111",
+        "name": "Computer Applications",
+        "credits": "3(2-2-5)",
+        "category": "Language and Communication"
+      }
+    ],
+    "aesthetics": [
+      {
+        "code": "01007101",
+        "name": "Horticulture for life Quality and Environment",
+        "credits": "3(2-2-5)",
+        "category": "Aesthetics"
+      },
+      {
+        "code": "01240011",
+        "name": "Design in Everyday Life",
+        "credits": "3(3-0-6)",
+        "category": "Aesthetics"
+      },
+      {
+        "code": "01373102",
+        "name": "Visual Culture and Life",
+        "credits": "3(3-0-6)",
+        "category": "Aesthetics"
+      },
+      {
+        "code": "01999034",
+        "name": "Art Perception",
+        "credits": "3(3-0-6)",
+        "category": "Aesthetics"
+      },
+      {
+        "code": "01999035",
+        "name": "Music Culture in Life",
+        "credits": "3(3-0-6)",
+        "category": "Aesthetics"
+      }
+    ]
+  }
+}
+
+# course_data/technical_electives.json - NEW FILE  
+{
+  "technical_electives": [
+    {
+      "code": "01206390",
+      "name": "Co-operative Education Preparation for Engineers",
+      "credits": "1(1-0-2)",
+      "prerequisites": [],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206411",
+      "name": "Industrial Instrumentation and Measurement", 
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206361"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206412",
+      "name": "Tool Engineering",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206311"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206413",
+      "name": "Industrial Pollution",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206421",
+      "name": "Simulation",
+      "credits": "3(2-2-5)",
+      "prerequisites": ["01206221", "01206361"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206422",
+      "name": "Industrial Quality Assurance",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206322"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206441",
+      "name": "Engineering Risk Analysis",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206221"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206442",
+      "name": "Energy Management",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206443",
+      "name": "Ergonomics",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206341"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206461",
+      "name": "System Engineering",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206321"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206462",
+      "name": "Logistics System Design and Management",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206321"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206463",
+      "name": "Enterprise Resources Planning: ERP",
+      "credits": "3(2-2-5)",
+      "prerequisites": ["01206432"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206464",
+      "name": "Supply Chain Management and Modeling",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206462"],
+      "category": "Technical Electives"
+    },
+    {
+      "code": "01206490",
+      "name": "Co-operative Education",
+      "credits": "6(0-40-0)",
+      "prerequisites": ["01206390"],
+      "category": "Technical Electives"
+    }
+  ]
+}
+
+# course_data/ie_core_courses.json - NEW FILE (with 01 prefix)
+{
+  "industrial_engineering_courses": [
+    {
+      "code": "01204111",
+      "name": "Computers and Programming",
+      "credits": "3(2-2-5)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01205201",
+      "name": "Electrical Engineering",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01420112"],
+      "corequisites": []
+    },
+    {
+      "code": "01205202",
+      "name": "Electrical Engineering Laboratory I",
+      "credits": "1(0-3-2)",
+      "prerequisites": [],
+      "corequisites": ["01205201"]
+    },
+    {
+      "code": "01206221",
+      "name": "Applied Probability and Statistics for Engineers",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01417168"],
+      "corequisites": []
+    },
+    {
+      "code": "01206222",
+      "name": "Applied Mathematics for Industrial Engineers",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01417267"],
+      "corequisites": []
+    },
+    {
+      "code": "01206223",
+      "name": "Introduction to Experimental Design for Engineers",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206221"],
+      "corequisites": []
+    },
+    {
+      "code": "01206251",
+      "name": "Engineering Economy",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01417168"],
+      "corequisites": []
+    },
+    {
+      "code": "01206272",
+      "name": "Industrial Safety",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206311",
+      "name": "Manufacturing Processes I",
+      "credits": "3(2-3-4)",
+      "prerequisites": ["01208281", "01213211"],
+      "corequisites": []
+    },
+    {
+      "code": "01206312",
+      "name": "Industrial Study",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206321",
+      "name": "Operations Research for Engineers I",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01417267"],
+      "corequisites": []
+    },
+    {
+      "code": "01206322",
+      "name": "Quality Control",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206221"],
+      "corequisites": []
+    },
+    {
+      "code": "01206323",
+      "name": "Operations Research for Engineers II",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206321"],
+      "corequisites": []
+    },
+    {
+      "code": "01206341",
+      "name": "Industrial Work Study",
+      "credits": "3(2-3-4)",
+      "prerequisites": ["01206312"],
+      "corequisites": []
+    },
+    {
+      "code": "01206342",
+      "name": "Production Planning and Control",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206321"],
+      "corequisites": []
+    },
+    {
+      "code": "01206343",
+      "name": "Industrial Plant Design",
+      "credits": "3(2-3-4)",
+      "prerequisites": ["01206342"],
+      "corequisites": []
+    },
+    {
+      "code": "01206361",
+      "name": "Computer Applications for Industrial Engineers",
+      "credits": "3(2-2-5)",
+      "prerequisites": ["01204111", "01206221"],
+      "corequisites": []
+    },
+    {
+      "code": "01206362",
+      "name": "Automatic Production System",
+      "credits": "3(2-3-4)",
+      "prerequisites": ["01206311", "01206361"],
+      "corequisites": []
+    },
+    {
+      "code": "01206371",
+      "name": "Maintenance Engineering",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206251", "01206311"],
+      "corequisites": []
+    },
+    {
+      "code": "01206381",
+      "name": "Industrial Engineering Laboratory I",
+      "credits": "1(0-3-2)",
+      "prerequisites": ["01206223", "01206341"],
+      "corequisites": []
+    },
+    {
+      "code": "01206382",
+      "name": "Industrial Engineering Laboratory II",
+      "credits": "1(0-3-2)",
+      "prerequisites": ["01206381"],
+      "corequisites": []
+    },
+    {
+      "code": "01206399",
+      "name": "Internship",
+      "credits": "1(0-3-2)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206452",
+      "name": "Industrial Cost Analysis",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01206251"],
+      "corequisites": []
+    },
+    {
+      "code": "01206495",
+      "name": "Industrial Engineering Project Preparation",
+      "credits": "1(0-3-2)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206497",
+      "name": "Seminar",
+      "credits": "1(0-3-2)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01206499",
+      "name": "Industrial Engineering Project",
+      "credits": "3(0-9-0)",
+      "prerequisites": ["01206495"],
+      "corequisites": []
+    }
+  ],
+  "other_related_courses": [
+    {
+      "code": "01208111",
+      "name": "Engineering Drawing",
+      "credits": "3(1-6-2)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01208221",
+      "name": "Engineering Mechanics I",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01417168", "01420111"],
+      "corequisites": []
+    },
+    {
+      "code": "01208241",
+      "name": "Thermodynamics I",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01417168", "01420112"],
+      "corequisites": []
+    },
+    {
+      "code": "01208281",
+      "name": "Workshop Practice",
+      "credits": "1(0-3-2)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01208381",
+      "name": "Mechanical Engineering Laboratory I",
+      "credits": "1(0-3-2)",
+      "prerequisites": ["01208241"],
+      "corequisites": []
+    },
+    {
+      "code": "01213211",
+      "name": "Materials Science for Engineers",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01403117"],
+      "corequisites": []
+    },
+    {
+      "code": "01403114",
+      "name": "Laboratory in Fundamental of General Chemistry",
+      "credits": "1(0-3-2)",
+      "prerequisites": [],
+      "corequisites": ["01403117"]
+    },
+    {
+      "code": "01403117",
+      "name": "Fundamental of General Chemistry",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01417167",
+      "name": "Engineering Mathematics I",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": []
+    },
+    {
+      "code": "01417168",
+      "name": "Engineering Mathematics II",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01417167"],
+      "corequisites": []
+    },
+    {
+      "code": "01417267",
+      "name": "Engineering Mathematics III",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01417168"],
+      "corequisites": []
+    },
+    {
+      "code": "01420111",
+      "name": "General Physics I",
+      "credits": "3(3-0-6)",
+      "prerequisites": [],
+      "corequisites": ["01420113"]
+    },
+    {
+      "code": "01420112",
+      "name": "General Physics II",
+      "credits": "3(3-0-6)",
+      "prerequisites": ["01420111"],
+      "corequisites": ["01420114"]
+    },
+    {
+      "code": "01420113",
+      "name": "Laboratory in Physics I",
+      "credits": "1(0-3-2)",
+      "prerequisites": [],
+      "corequisites": ["01420111"]
+    },
+    {
+      "code": "01420114",
+      "name": "Laboratory in Physics II",
+      "credits": "1(0-3-2)",
+      "prerequisites": ["01420113"],
+      "corequisites": ["01420112"]
+    }
+  ]
+}
