@@ -199,12 +199,18 @@ def main():
                             st.error(f"**{result.get('semester')}:** {result.get('course_code')} - {result.get('course_name')}")
                             st.write(f"   *Issue:* {result.get('reason')}")
             
-            # Check for unidentified courses
-            from utils.excel_generator import classify_course
+            # Check for unidentified courses using proper detection
+            from utils.excel_generator import classify_course, load_course_categories
+            course_categories = load_course_categories()
             unidentified_courses = []
+            
             for semester in st.session_state.semesters:
                 for course in semester.get("courses", []):
-                    category, subcategory, is_identified = classify_course(course.get("code", ""), course.get("name", ""))
+                    category, subcategory, is_identified = classify_course(
+                        course.get("code", ""), 
+                        course.get("name", ""),
+                        course_categories
+                    )
                     if not is_identified:
                         unidentified_courses.append({
                             "code": course.get("code", ""),
