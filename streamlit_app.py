@@ -367,7 +367,7 @@ def main():
                         st.metric("Free Electives", f"{credit_summary.get('free_electives', 0)}", help="Variable requirement")
                         st.metric("Unidentified", f"{credit_summary.get('unidentified', 0)}", help="Need classification", delta_color="off")
             
-            # Visualization Options
+            # Visualization Options - FIXED SECTION
             st.divider()
             st.header("📊 Advanced Visualizations & Downloads")
             
@@ -383,8 +383,49 @@ def main():
                 st.subheader("🗂️ Interactive Curriculum Flow Chart")
                 st.markdown("*Visual curriculum progression with prerequisite relationships*")
                 
-                # Display the HTML
-                st.components.v1.html(flow_html, height=900, scrolling=True)
+                # FIXED HTML DISPLAY SECTION
+                if flow_html and len(flow_html) > 0:
+                    try:
+                        # Method 1: Standard display with adjusted parameters
+                        st.components.v1.html(
+                            flow_html, 
+                            height=700,  # Reduced from 900
+                            width=None,  # Auto-width
+                            scrolling=True
+                        )
+                    except Exception as e1:
+                        st.warning(f"Primary display method failed: {str(e1)[:100]}...")
+                        
+                        try:
+                            # Method 2: Alternative with explicit width
+                            st.components.v1.html(
+                                flow_html, 
+                                height=600,
+                                width=1000,  # Explicit width
+                                scrolling=True
+                            )
+                        except Exception as e2:
+                            st.warning(f"Secondary display method failed: {str(e2)[:100]}...")
+                            
+                            try:
+                                # Method 3: Markdown fallback for simple HTML
+                                st.markdown(
+                                    f'<div style="height: 500px; overflow: auto; border: 1px solid #ccc; padding: 10px;">{flow_html}</div>',
+                                    unsafe_allow_html=True
+                                )
+                            except Exception as e3:
+                                st.error(f"All display methods failed. Offering download instead.")
+                                
+                                # Method 4: Download only
+                                st.download_button(
+                                    label="📥 Download Flow Chart HTML",
+                                    data=flow_html.encode('utf-8'),
+                                    file_name=f"curriculum_flow_{st.session_state.student_info.get('id', 'unknown')}.html",
+                                    mime="text/html",
+                                    help="Download and open in browser"
+                                )
+                else:
+                    st.error("❌ No HTML content generated for flow chart")
                 
             except Exception as e:
                 st.error(f"Error generating flow chart: {e}")
