@@ -371,7 +371,7 @@ def main():
             st.divider()
             st.header("📊 Advanced Visualizations & Downloads")
             
-            # Generate flow chart
+            # Generate flow chart - FIXED DISPLAY LOGIC
             try:
                 with st.spinner("Generating interactive curriculum flow chart..."):
                     flow_html, flow_unidentified = create_semester_flow_html(
@@ -384,46 +384,40 @@ def main():
                 st.markdown("*Visual curriculum progression with prerequisite relationships*")
                 
                 # FIXED HTML DISPLAY SECTION
-                if flow_html and len(flow_html) > 0:
-                    try:
-                        # Method 1: Standard display with adjusted parameters
-                        st.components.v1.html(
-                            flow_html, 
-                            height=700,  # Reduced from 900
-                            width=None,  # Auto-width
-                            scrolling=True
-                        )
-                    except Exception as e1:
-                        st.warning(f"Primary display method failed: {str(e1)[:100]}...")
-                        
+                if flow_html and len(flow_html.strip()) > 0:
+                    # Create expandable container for better display
+                    with st.expander("📊 View Interactive Flow Chart", expanded=True):
                         try:
-                            # Method 2: Alternative with explicit width
+                            # Use iframe-style display for better compatibility
                             st.components.v1.html(
                                 flow_html, 
-                                height=600,
-                                width=1000,  # Explicit width
+                                height=800,
                                 scrolling=True
                             )
-                        except Exception as e2:
-                            st.warning(f"Secondary display method failed: {str(e2)[:100]}...")
+                        except Exception as e:
+                            st.warning("HTML component display issue. Using alternative display method...")
                             
-                            try:
-                                # Method 3: Markdown fallback for simple HTML
-                                st.markdown(
-                                    f'<div style="height: 500px; overflow: auto; border: 1px solid #ccc; padding: 10px;">{flow_html}</div>',
-                                    unsafe_allow_html=True
-                                )
-                            except Exception as e3:
-                                st.error(f"All display methods failed. Offering download instead.")
-                                
-                                # Method 4: Download only
-                                st.download_button(
-                                    label="📥 Download Flow Chart HTML",
-                                    data=flow_html.encode('utf-8'),
-                                    file_name=f"curriculum_flow_{st.session_state.student_info.get('id', 'unknown')}.html",
-                                    mime="text/html",
-                                    help="Download and open in browser"
-                                )
+                            # Fallback: Show a styled container with download option
+                            st.markdown(
+                                """
+                                <div style="border: 2px dashed #ccc; padding: 20px; text-align: center; border-radius: 10px; background-color: #f9f9f9;">
+                                    <h3>📊 Interactive Flow Chart Ready</h3>
+                                    <p>The interactive curriculum flow chart has been generated successfully.</p>
+                                    <p><strong>Use the download button below to view the full interactive chart.</strong></p>
+                                </div>
+                                """, 
+                                unsafe_allow_html=True
+                            )
+                            
+                            # Provide download option
+                            st.download_button(
+                                label="📥 Download & View Flow Chart",
+                                data=flow_html.encode('utf-8'),
+                                file_name=f"curriculum_flow_{st.session_state.student_info.get('id', 'unknown')}.html",
+                                mime="text/html",
+                                help="Download and open in your browser for full interactive experience",
+                                type="primary"
+                            )
                 else:
                     st.error("❌ No HTML content generated for flow chart")
                 
@@ -471,23 +465,37 @@ def main():
             with col_dl2:
                 # HTML Flow Chart download
                 try:
-                    flow_html, flow_unidentified = create_semester_flow_html(
-                        st.session_state.student_info,
-                        st.session_state.semesters,
-                        st.session_state.validation_results
-                    )
-                    
-                    st.download_button(
-                        label="🗂️ Flow Chart (HTML)",
-                        data=flow_html.encode('utf-8'),
-                        file_name=f"curriculum_flow_{st.session_state.student_info.get('id', 'unknown')}.html",
-                        mime="text/html",
-                        help="Interactive semester-based curriculum flow chart",
-                        use_container_width=True
-                    )
-                    
-                    if flow_unidentified > 0:
-                        st.warning(f"⚠️ {flow_unidentified} unidentified")
+                    if 'flow_html' in locals():
+                        st.download_button(
+                            label="🗂️ Flow Chart (HTML)",
+                            data=flow_html.encode('utf-8'),
+                            file_name=f"curriculum_flow_{st.session_state.student_info.get('id', 'unknown')}.html",
+                            mime="text/html",
+                            help="Interactive semester-based curriculum flow chart",
+                            use_container_width=True
+                        )
+                        
+                        if 'flow_unidentified' in locals() and flow_unidentified > 0:
+                            st.warning(f"⚠️ {flow_unidentified} unidentified")
+                    else:
+                        # Generate flow chart for download if not already generated
+                        flow_html, flow_unidentified = create_semester_flow_html(
+                            st.session_state.student_info,
+                            st.session_state.semesters,
+                            st.session_state.validation_results
+                        )
+                        
+                        st.download_button(
+                            label="🗂️ Flow Chart (HTML)",
+                            data=flow_html.encode('utf-8'),
+                            file_name=f"curriculum_flow_{st.session_state.student_info.get('id', 'unknown')}.html",
+                            mime="text/html",
+                            help="Interactive semester-based curriculum flow chart",
+                            use_container_width=True
+                        )
+                        
+                        if flow_unidentified > 0:
+                            st.warning(f"⚠️ {flow_unidentified} unidentified")
                         
                 except Exception as e:
                     st.error(f"❌ Flow chart error: {str(e)[:50]}...")
@@ -524,7 +532,7 @@ def main():
                         "unidentified_count": st.session_state.unidentified_count,
                         "metadata": {
                             "course_catalog": st.session_state.selected_course_data.get('filename', ''),
-                            "generated_timestamp": str(pd.Timestamp.now()) if 'pd' in globals() else "unknown"
+                            "generated_timestamp": str(st.session_state.get('processing_timestamp', 'unknown'))
                         }
                     }
                     
