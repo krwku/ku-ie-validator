@@ -371,7 +371,7 @@ def main():
             st.divider()
             st.header("📊 Advanced Visualizations & Downloads")
             
-            # Generate flow chart - OPEN IN NEW WINDOW
+            # Generate flow chart - AUTO-OPEN IN NEW WINDOW
             try:
                 with st.spinner("Generating interactive curriculum flow chart..."):
                     flow_html, flow_unidentified = create_semester_flow_html(
@@ -384,14 +384,31 @@ def main():
                 st.markdown("*Visual curriculum progression with prerequisite relationships*")
                 
                 if flow_html and len(flow_html.strip()) > 0:
-                    # Create buttons to open flow chart in new window
-                    col_flow1, col_flow2 = st.columns([1, 1])
+                    # Automatically open flow chart in new window
+                    js_code = f"""
+                    <script>
+                    const flowHTML = `{flow_html.replace('`', '\\`')}`;
+                    const newWindow = window.open('', '_blank');
+                    if (newWindow) {{
+                        newWindow.document.write(flowHTML);
+                        newWindow.document.close();
+                    }}
+                    </script>
+                    """
+                    st.components.v1.html(js_code, height=0)
+                    
+                    # Show success message and provide re-open option
+                    col_flow1, col_flow2 = st.columns([2, 1])
                     
                     with col_flow1:
-                        # Button to open in new window using JavaScript
-                        if st.button("🚀 Open Flow Chart in New Window", type="primary", use_container_width=True):
-                            # JavaScript to open in new window
-                            js_code = f"""
+                        st.success("✅ Flow chart automatically opened in new window!")
+                        if flow_unidentified > 0:
+                            st.warning(f"⚠️ {flow_unidentified} unidentified courses in flow chart")
+                    
+                    with col_flow2:
+                        # Re-open button for popup blocker cases
+                        if st.button("🔄 Re-open Flow Chart", help="Click if popup was blocked"):
+                            js_reopen = f"""
                             <script>
                             const flowHTML = `{flow_html.replace('`', '\\`')}`;
                             const newWindow = window.open('', '_blank');
@@ -399,24 +416,10 @@ def main():
                             newWindow.document.close();
                             </script>
                             """
-                            st.components.v1.html(js_code, height=0)
-                            st.success("✅ Flow chart opened in new window!")
+                            st.components.v1.html(js_reopen, height=0)
+                            st.success("✅ Flow chart re-opened!")
                     
-                    with col_flow2:
-                        # Alternative: Download option
-                        st.download_button(
-                            label="📥 Download Flow Chart",
-                            data=flow_html.encode('utf-8'),
-                            file_name=f"curriculum_flow_{st.session_state.student_info.get('id', 'unknown')}.html",
-                            mime="text/html",
-                            help="Download and open manually in your browser",
-                            use_container_width=True
-                        )
-                    
-                    if flow_unidentified > 0:
-                        st.warning(f"⚠️ {flow_unidentified} unidentified courses in flow chart")
-                    
-                    st.info("💡 **Tip:** The flow chart opens in a new window/tab for the best interactive experience!")
+                    st.info("💡 **Note:** If the window didn't open automatically, use the 'Re-open' button (popup might be blocked by browser).")
                     
                 else:
                     st.error("❌ No HTML content generated for flow chart")
