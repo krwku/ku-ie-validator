@@ -371,7 +371,7 @@ def main():
             st.divider()
             st.header("📊 Advanced Visualizations & Downloads")
             
-            # Generate flow chart - FIXED DISPLAY LOGIC
+            # Generate flow chart - OPEN IN NEW WINDOW
             try:
                 with st.spinner("Generating interactive curriculum flow chart..."):
                     flow_html, flow_unidentified = create_semester_flow_html(
@@ -383,41 +383,41 @@ def main():
                 st.subheader("🗂️ Interactive Curriculum Flow Chart")
                 st.markdown("*Visual curriculum progression with prerequisite relationships*")
                 
-                # FIXED HTML DISPLAY SECTION
                 if flow_html and len(flow_html.strip()) > 0:
-                    # Create expandable container for better display
-                    with st.expander("📊 View Interactive Flow Chart", expanded=True):
-                        try:
-                            # Use iframe-style display for better compatibility
-                            st.components.v1.html(
-                                flow_html, 
-                                height=800,
-                                scrolling=True
-                            )
-                        except Exception as e:
-                            st.warning("HTML component display issue. Using alternative display method...")
-                            
-                            # Fallback: Show a styled container with download option
-                            st.markdown(
-                                """
-                                <div style="border: 2px dashed #ccc; padding: 20px; text-align: center; border-radius: 10px; background-color: #f9f9f9;">
-                                    <h3>📊 Interactive Flow Chart Ready</h3>
-                                    <p>The interactive curriculum flow chart has been generated successfully.</p>
-                                    <p><strong>Use the download button below to view the full interactive chart.</strong></p>
-                                </div>
-                                """, 
-                                unsafe_allow_html=True
-                            )
-                            
-                            # Provide download option
-                            st.download_button(
-                                label="📥 Download & View Flow Chart",
-                                data=flow_html.encode('utf-8'),
-                                file_name=f"curriculum_flow_{st.session_state.student_info.get('id', 'unknown')}.html",
-                                mime="text/html",
-                                help="Download and open in your browser for full interactive experience",
-                                type="primary"
-                            )
+                    # Create buttons to open flow chart in new window
+                    col_flow1, col_flow2 = st.columns([1, 1])
+                    
+                    with col_flow1:
+                        # Button to open in new window using JavaScript
+                        if st.button("🚀 Open Flow Chart in New Window", type="primary", use_container_width=True):
+                            # JavaScript to open in new window
+                            js_code = f"""
+                            <script>
+                            const flowHTML = `{flow_html.replace('`', '\\`')}`;
+                            const newWindow = window.open('', '_blank');
+                            newWindow.document.write(flowHTML);
+                            newWindow.document.close();
+                            </script>
+                            """
+                            st.components.v1.html(js_code, height=0)
+                            st.success("✅ Flow chart opened in new window!")
+                    
+                    with col_flow2:
+                        # Alternative: Download option
+                        st.download_button(
+                            label="📥 Download Flow Chart",
+                            data=flow_html.encode('utf-8'),
+                            file_name=f"curriculum_flow_{st.session_state.student_info.get('id', 'unknown')}.html",
+                            mime="text/html",
+                            help="Download and open manually in your browser",
+                            use_container_width=True
+                        )
+                    
+                    if flow_unidentified > 0:
+                        st.warning(f"⚠️ {flow_unidentified} unidentified courses in flow chart")
+                    
+                    st.info("💡 **Tip:** The flow chart opens in a new window/tab for the best interactive experience!")
+                    
                 else:
                     st.error("❌ No HTML content generated for flow chart")
                 
